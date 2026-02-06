@@ -57,6 +57,11 @@ export default function NavBar() {
             );
           })}
         </div>
+
+        <Link href="/login" className="text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
+          Sign In
+        </Link>
+
       </div>
     </nav>
   );
