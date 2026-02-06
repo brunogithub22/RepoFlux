@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { name: "Software", href: "/software" },
-  { name: "Project", href: "/project" },
+  { name: "Software", href: "/dashboard/software" },
+  { name: "Project", href: "/dashboard/project" },
 ];
 
 export default function NavBar() {
