@@ -11,6 +11,7 @@ const NAV_LINKS = [
 
 export default function NavBar() {
   const pathname = usePathname();  
+  
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 transition-colors">
@@ -57,10 +58,6 @@ export default function NavBar() {
             );
           })}
         </div>
-
-        <Link href="/login" className="text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
-          Sign In
-        </Link>
 
       </div>
     </nav>

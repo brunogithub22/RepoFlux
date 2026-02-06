@@ -21,14 +21,16 @@ export async function proxy(request: NextRequest) {
     },
   });
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  console.log ({ user });
+  const {data: { user }} = await supabase.auth.getUser();
+  console.log (user?.id);
 
+  const admin:string = process.env.CMS_ADMIN_USER_ID!
   // Redirect non-authenticated users away from protected routes
-  if (!user && request.nextUrl.pathname.startsWith("/protected")) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    if (!user || user.id !== admin) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
+
   return response;
 }

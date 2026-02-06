@@ -2,8 +2,6 @@
 
 import { getSupabaseBrowserClient } from "@/lib/superbase/client";
 import { User } from "@supabase/supabase-js";
-import { useState, useEffect } from "react";
-import { AuthDemoPage } from "@/components/AuthPage";
 
 type GitHubLoginDemoProps = {
   user: User | null;
@@ -11,144 +9,93 @@ type GitHubLoginDemoProps = {
 
 export default function GitHubLoginDemo({ user }: GitHubLoginDemoProps) {
   const supabase = getSupabaseBrowserClient();
-  const [currentUser, setCurrentUser] = useState<User | null>(user);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    setCurrentUser(null);
-  }
-
-  useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setCurrentUser(session?.user ?? null);
-      }
-    );
-
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, [supabase])
-
+  
   async function handleGitHubLogin() {
     await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${window.location.origin}/login`,
-        skipBrowserRedirect: false,
-        queryParams: { allow_signup: "true" }, // Helps GitHub show account picker
+        redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: false, 
+      },
+    });
+  }
+
+  async function handleGoogleLogin() {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        // Remember to use the /auth/callback route we built earlier!
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
   }
 
   return (
-    <AuthDemoPage
-      title="GitHub Login"
-      intro="Classic credentials—users enter details, Supabase secures the rest while getSession + onAuthStateChange keep the UI live."
-      steps={[
-        "Toggle between sign up and sign in.",
-        "Submit to watch the session card refresh instantly.",
-        "Sign out to reset the listener.",
-      ]}
-    >
-      {!currentUser && (
-        <>
-          <section className="relative overflow-hidden rounded-4xl border border-[#5a8dee]/40 bg-linear-to-br from-[#050a16] via-[#08142b] to-[#0f2446] p-8 text-slate-100 shadow-[0_35px_90px_rgba(2,6,23,0.65)]">
-            <div
-              className="pointer-events-none absolute -right-6 -top-8 -z-10 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(66,133,244,0.25),rgba(234,67,53,0.06))] blur-xl"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute bottom-2 right-10 -z-10 h-14 w-20 rounded-full bg-[radial-gradient(circle,rgba(52,168,83,0.2),transparent)] blur-lg"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute -left-10 bottom-4 -z-10 h-20 w-32 rotate-12 rounded-full bg-[linear-gradient(120deg,rgba(251,188,5,0.18),rgba(66,133,244,0.12))] blur-lg"
-              aria-hidden="true"
-            />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d1f3f] text-2xl font-semibold text-white shadow-lg shadow-blue-900/40 ring-2 ring-[#8ab4ff]/40">
-                  G
-                </span>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                    OAuth
-                  </p>
-                  <h3 className="text-xl font-semibold text-white">
-                    Continue with GitHub
-                  </h3>
-                </div>
-              </div>
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-[#fbbc05] shadow-sm">
-                No password storage
-              </span>
-            </div>
-            <p className="mt-4 text-sm text-slate-300">
-              Supabase hosts the OAuth flow and returns a ready-to-use session.
-            </p>
-            <button
-              type="button"
-              onClick={handleGitHubLogin}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#1a73e8] px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 transition hover:bg-[#1662c4]"
-            >
-              Continue with GitHub
-            </button>
-          </section>
-        </>
-      )}
-      <section className="rounded-[28px] border border-white/10 bg-white/5 p-7 text-slate-200 shadow-[0_25px_70px_rgba(2,6,23,0.65)] backdrop-blur">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-semibold text-white">Session</h3>
-            <p className="mt-1 text-sm text-slate-400">
-              {currentUser
-                ? "Hydrated by getSession + onAuthStateChange."
-                : "Sign in to hydrate this panel instantly."}
-            </p>
-          </div>
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${currentUser
-              ? "bg-emerald-500/20 text-emerald-200"
-              : "bg-white/10 text-slate-400"
-              }`}
-          >
-            {currentUser ? "Active" : "Idle"}
-          </span>
+    // min-h-[100dvh] is more "lightweight" and mobile-friendly than min-h-screen
+    <div className="min-h-[70dvh] flex flex-col items-center justify-center px-4 transition-colors">
+      
+
+      {/* Lightweight Card */}
+      <div className="max-w-sm w-full space-y-6">
+        <div className="text-center">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            Welcome back
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Please sign in to access the dashboard.
+          </p>
         </div>
-        {currentUser ? (
-          <>
-            <dl className="mt-5 space-y-3 text-sm text-slate-200">
-              <div className="flex items-center justify-between gap-6">
-                <dt className="text-slate-400">User ID</dt>
-                <dd className="font-mono text-xs">{currentUser.id}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-6">
-                <dt className="text-slate-400">Email</dt>
-                <dd>{currentUser.email}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-6">
-                <dt className="text-slate-400">Last sign in</dt>
-                <dd>
-                  {currentUser.last_sign_in_at
-                    ? new Date(currentUser.last_sign_in_at).toLocaleString()
-                    : "—"}
-                </dd>
-              </div>
-            </dl>
-            <button
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
-              onClick={handleSignOut}
-            >
-              Sign out
-            </button>
-          </>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-dashed border-white/10 bg-slate-900/50 p-5 text-sm text-slate-400">
-            Session metadata will show up here after a successful sign in.
+
+        <button
+          onClick={handleGitHubLogin}
+          className="cursor-pointer group relative w-full flex justify-center items-center py-3 px-4 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-bold transition-all active:scale-[0.98] hover:bg-gray-800 dark:hover:bg-gray-100"
+        >
+          <span className="absolute left-4">
+            <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+               <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+          </span>
+          Continue with GitHub
+        </button>
+
+        <button
+          onClick={handleGoogleLogin}
+          className="cursor-pointer group relative w-full flex justify-center items-center py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black text-black dark:text-white text-sm font-bold transition-all active:scale-[0.98] hover:bg-gray-50 dark:hover:bg-gray-900"
+        >
+      <span className="absolute left-4">
+        <svg className="h-5 w-5" viewBox="0 0 24 24">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4"
+          />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853"
+          />
+          <path
+            d="M5.84 14.09c-.22-.67-.35-1.39-.35-2.09s.13-1.42.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+            fill="#FBBC05"
+          />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
+            fill="#EA4335"
+          />
+        </svg>
+      </span>
+      Continue with Google
+    </button>
+
+        {/* Separator Line */}
+        <div className="relative py-2">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-gray-100 dark:border-gray-800"></div>
           </div>
-        )}
-      </section>
-    </AuthDemoPage>
+          <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold">
+            <span className="bg-white dark:bg-black px-3 text-gray-400">Security</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
 }
