@@ -79,7 +79,7 @@ export default function AdminDashboard() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 p-10 overflow-auto">
+      <main className="flex-1 overflow-auto">
         {VIEWS[activeTab]}
       </main>
     </div>

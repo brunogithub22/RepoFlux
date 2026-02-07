@@ -1,31 +1,63 @@
-import { pgTable, serial, text, date } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date ,foreignKey} from "drizzle-orm/pg-core";
 
-export const users = pgTable('posts', {
-  id: serial('id').primaryKey().notNull(),
+// Posts table - owned by a user
+export const posts = pgTable('posts', {
+  id: uuid('id').primaryKey().notNull(),
   title: text('title'),
+  type: text('type'),
   description: text('description'),
   date: date('date'),
 });
 
+// Images table - owned by a user
 export const images = pgTable('images', {
-  id: serial('id').primaryKey().notNull(),
+  id: uuid('id').primaryKey().notNull(),
   link: text('link')
 });
 
-export const user_image = pgTable('user_image', {
-  id: serial('id').primaryKey().notNull(),
-  user_id: serial('user_id'),
-  image_id: serial('image_id')
-});
+/* POST ↔ IMAGE */
+export const postImage = pgTable(
+  "post_image",
+  {
+    id: uuid("id").primaryKey().notNull(),
+    postId: uuid("post_id").notNull(),
+    imageId: uuid("image_id").notNull(),
+  },
+  (table) => ({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
 
+    imageFk: foreignKey({
+      columns: [table.imageId],
+      foreignColumns: [images.id],
+    }).onDelete("cascade"),
+  })
+);
+// Languages - can be global (no user_id) or per-user
 export const languages = pgTable('languages', {
-  id: serial('id').primaryKey().notNull(),
+  id: uuid('id').primaryKey().notNull(),
   language: text('language')
 });
 
-export const user_language = pgTable('user_language', {
-  id: serial('id').primaryKey().notNull(),
-  user_id: serial('user_id'),
-  language_id: serial('language_id')
-});
+export const postLanguage = pgTable(
+  "post_language",
+  {
+    id: uuid("id").primaryKey().notNull(),
+    postId: uuid("post_id").notNull(),
+    languageId: uuid("language_id").notNull(),
+  },
+  (table) => ({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
+
+    languageFk: foreignKey({
+      columns: [table.languageId],
+      foreignColumns: [languages.id],
+    }).onDelete("cascade"),
+  })
+);
         
