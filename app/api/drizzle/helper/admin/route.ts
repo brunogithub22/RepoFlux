@@ -1,9 +1,23 @@
 import { NextResponse } from "next/server";
 import { getAllLanguages, addLanguage, deleteLanguage } from "@/src/db/admin/dbOperation";
+import { actions } from '@/app/api/drizzle/action';
 
-export async function GET(rew: Request) {
-}
+export async function POST(request: Request) {
+  try {
+    const { actionName, payload } = await request.json();
 
-export async function POST(req: Request) {
+    // Look up the function in our actions object
+    const selectedFunction = actions[actionName];
 
+    if (!selectedFunction) {
+      return NextResponse.json({ error: "Invalid function name" }, { status: 400 });
+    }
+
+    // Execute the function
+    const result = await selectedFunction(payload);
+
+    return NextResponse.json({ success: true, result });
+  } catch (error) {
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+  }
 }
