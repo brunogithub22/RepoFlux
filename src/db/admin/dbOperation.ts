@@ -23,7 +23,6 @@ export async function addRow<T extends PgTable<TableConfig>>(
   values: InferInsertModel<T>
 ) {
   try {
-    
     await dbAdmin.insert(table).values(values);
     return true;
   } catch (error) {
@@ -33,48 +32,52 @@ export async function addRow<T extends PgTable<TableConfig>>(
 }
 
 // Delete a language by ID
-export async function deleteRow<T extends PgTable>(table: T,criteria: Record<string, any>) {
-  try {
-    console.log("Deleting from table:", table._.name);
-
-    
+export async function deleteRow<T extends PgTable>(table: T,criteria: InferInsertModel<T>) {
+  try {    
     const columns = getTableColumns(table);
-    // 1. Map the object keys to Drizzle equality expressions
-    const filters = Object.entries(criteria).map(([key, value]) => {
-    const column = columns[key];
-      if (!column) {
-        throw new Error(`Column "${key}" does not exist on table "${table._.name}"`);
+    const filters = Object.entries(criteria).map(([key, value]) => {  
+      const columnReference = columns[key];
+
+      if (!columnReference) {
+        throw new Error(`Column ${key} not found in table ${table}`);
       }
-      return eq(column, value);
+
+      // Create the comparison: id = 'some-uuid'
+      return eq(columnReference, value);
     });
 
-    await dbAdmin.delete(table).where(and(...filters));
+    // 2. Apply the filters to the delete query
+    await dbAdmin
+      .delete(table as any)
+      .where(and(...filters));
+
     return true;
   } catch (error) {
-    console.error(`Error deleting from ${table._.name}:`, error);
+    console.error("Error deleting row:", error);
     return false;
   }
 }
 
-export async function searchItem<T extends PgTable>(table: T, criteria: Record<string, any>) {
+export async function searchItem<T extends PgTable<TableConfig>>(table: T,criteria: Partial<InferInsertModel<T>>) {
 
   try {
-
     const columns = getTableColumns(table);
-    // 1. Map the object keys to Drizzle equality expressions
-    const filters = Object.entries(criteria).map(([key, value]) => {
-    const column = columns[key];
-      if (!column) {
-        throw new Error(`Column "${key}" does not exist on table "${table._.name}"`);
+    const filters = Object.entries(criteria).map(([key, value]) => {  
+      const columnReference = columns[key];
+
+      if (!columnReference) {
+        throw new Error(`Column ${key} not found in table ${table}`);
       }
-      return eq(column, value);
+
+      // Create the comparison: id = 'some-uuid'
+      return eq(columnReference, value);
     });
 
-    // 2. Combine all filters with 'and'
+    // 2. Apply the filters to the delete query
     const result = await dbAdmin
       .select()
       .from(table as any)
-      .where(and(...filters)); // Use the spread operator to pass the array
+      .where(and(...filters));
 
     return result.length > 0;
   } catch (error) {

@@ -7,7 +7,7 @@ import ViewContent from './ViewContent';
 
 export default function Content(){
 
-  const [activeSubTab, setActiveSubTab] = useState("projects");
+  const [activeSubTab, setActiveSubTab] = useState("view");
 
   const NAV_ITEMS = [
     { id: 'view', label: 'View', icon: LayoutDashboard },
@@ -15,32 +15,48 @@ export default function Content(){
   ];
 
   const SUBVIEWS: Record<string, JSX.Element> = {
-    projects: <ViewContent/>,
+    view: <ViewContent/>,
     uploads: <UploadContent/>,
   };
 
     return (
-        <div>
-          <nav className="flex px-4  mb-2">
-            {NAV_ITEMS.map((item) => (
-              <button 
-                key={item.id}
-                onClick={() => setActiveSubTab(item.id)}
-                className={`flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all ${
-                  activeSubTab === item.id 
-                     ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" 
-                      : "text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900"
-                }`}
-              >
-                <item.icon size={18} /> {item.label}
-              </button>
-            ))}
-          </nav>
+        <div className="flex flex-col h-full bg-white dark:bg-zinc-950">
+        {/* Header/Nav Wrapper */}
+          <header className="sticky top-0 z-10 border-b border-gray-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
+            <nav className="flex items-center gap-1 p-2 max-w-screen-2xl mx-auto">
+              {NAV_ITEMS.map((item) => {
+                const isActive = activeSubTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSubTab(item.id)}
+                      className={`
+                       relative flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                        ${isActive 
+                          ? "text-blue-600 dark:text-blue-400" 
+                          : "text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-gray-50 dark:hover:bg-zinc-900"
+                        }
+                     `}
+                    >
+                     <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                     <span>{item.label}</span>
+            
+                     {/* Active Indicator Line */}
+                     {isActive && (
+                       <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
+                     )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </header>
 
-          {/* MAIN CONTENT */}
-          <main className="flex-1 overflow-auto">
-            {SUBVIEWS[activeSubTab]}
-          </main>
-        </div>
+            {/* MAIN CONTENT */}
+            <main className="flex-1 p-6 overflow-auto">
+              <div className="max-w-screen-2xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
+                {SUBVIEWS[activeSubTab]}
+              </div>
+            </main>
+          </div>
     );
 }

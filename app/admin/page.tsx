@@ -57,7 +57,7 @@ export default function AdminDashboard() {
             <button 
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all ${
+              className={`cursor-pointer flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all ${
                 activeTab === item.id 
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" 
                   : "text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900"

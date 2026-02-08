@@ -15,53 +15,44 @@ export default function Language() {
   const [search, setSearch] = useState<string>("");
 
 
-  const fetchLanguage = useCallback(async ()=>{
-    const actionName = "getLanguages"; // The "function name" your API expects
-
-      try {  
-        const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            actionName: actionName,
-            payload: {  } // Passing the parameter
-          }),
-        });
-  
-        const result = await response.json();
-      
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to add language");
-        }
-        console.log(result.result);
+  const fetchLanguage = useCallback(async () => {
+    const actionName = "getLanguages";
+    try {
+      const response = await fetch('/api/drizzle/helper/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actionName, payload: {} }),
+      });
+      const result = await response.json();
+      if (response.ok) {
         setMyLanguages(result.result);
-      } catch (error) {
-        console.error("Error calling API:", error);
       }
-  },[]); 
-    
+    } catch (error) {
+      console.error("Error fetching user languages:", error);
+    }
+  }, []);
 
-  // 1. Fetch from your own local API route
+  // 2. Use ONE useEffect to handle the initial mount
   useEffect(() => {
-    async function loadLanguages() {
+    const initializeData = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('/api/languages'); // Calls your route.ts
-        const data = await response.json();
-        setLanguages(data);
+      // We run both fetches in parallel to save time
+      // This is faster than waiting for one, then the other.
+        await Promise.all([
+          fetch('/api/languages')
+            .then(res => res.json())
+            .then(data => setLanguages(data)),
+          fetchLanguage()
+        ]);
       } catch (error) {
-        console.error("Failed to load languages", error);
+        console.error("Initialization failed:", error);
       } finally {
         setLoading(false);
       }
-    }
-    loadLanguages();
+    };
 
-  }, []);
-
-  useEffect(()=>{
-    fetchLanguage();
+    initializeData();
   }, [fetchLanguage]);
 
   async function closeList(){
@@ -93,6 +84,18 @@ export default function Language() {
       }
 
       console.log("Success:", result);
+
+      switch (result.result.message) {
+        case 'language added':
+          alert('language successfully added to the database!');
+          break;
+        case 'language already exists':
+          alert('This language already exists in the database.');
+          break;
+        default:
+          alert('Unexpected response: ' + result.result.message);
+      }
+
       await fetchLanguage();
     } catch (error) {
       console.error("Error calling API:", error);
@@ -110,14 +113,14 @@ export default function Language() {
         },
         body: JSON.stringify({
           actionName: actionName,
-          payload: { id:  id} // Passing the parameter
+          payload: { Id:  id} // Passing the parameter
         }),
       });
   
       const result = await response.json();
     
       if (!response.ok) {
-        throw new Error(result.error || "Failed to add language");
+        throw new Error(result.error || "Failed to remove language");
       }
 
       console.log("Success:", result);

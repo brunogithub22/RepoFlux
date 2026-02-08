@@ -1,11 +1,181 @@
 'use client';
 
-import {useState} from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { X, ChevronLeft, ChevronRight, Maximize2, Trash2,Loader2 } from 'lucide-react';
+import { CldImage } from 'next-cloudinary';
+
+interface GalleryImage {
+  id: string;
+  link: string;
+}
 
 export default function ViewContent() {
-  const [assetUrl, setAssetUrl] = useState<string | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [IMAGES, setIMAGES] = useState<GalleryImage[]>([]);
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  return(
-    <div></div>
+  async function handleDelete(id: string) {}
+
+  useEffect(()=>{
+    async function fetchImages(){
+      const actionName = "getImages"; // The "function name" your API expects
+
+      try {  
+        const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            actionName: actionName,
+            payload: {  } // Passing the parameter
+          }),
+        });
+    
+        const result = await response.json();
+      
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to add language");
+        }
+
+         console.log("Success:", result);
+
+         setIMAGES(result.result);
+
+      } catch (error) {
+        console.error("Error calling API:", error);
+      }
+    }
+    fetchImages();
+    
+  },[]);
+
+  const openImage = (index: number) => setSelectedIdx(index);
+  const closeImage = () => setSelectedIdx(null);
+  const nextImage = () => setSelectedIdx((prev) => (prev !== null ? (prev + 1) % IMAGES.length : null));
+  const prevImage = () => setSelectedIdx((prev) => (prev !== null ? (prev - 1 + IMAGES.length) % IMAGES.length : null));
+
+  return (
+    
+    <div className="p-6">
+      {
+        IMAGES.length === 0 ? (
+          <div>
+            <p className="text-gray-500 dark:text-gray-400">No images found. Please upload some content to view it here.</p>
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-2xl font-bold mb-6 dark:text-white">Media Gallery</h2>
+            {/* 1. THE GRID */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {IMAGES.map((img, index) => (
+                <div 
+                 key={img.id} 
+                 className="group relative aspect-square overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900 cursor-pointer"
+                 onClick={() => openImage(index)}
+                >
+                  <CldImage
+                   src={img.link} //
+                   alt ={img.link}
+                   fill 
+                   crop="fill"
+                   gravity="auto" // Focuses on the most important part of the image
+                   className="object-cover transition-transform duration-300 group-hover:scale-110" 
+                   sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                  {/* Overlay Layer */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-4">
+                    {/* View Icon */}
+                    <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={24} />
+                    {/* DELETE BUTTON */}
+                    <button
+                      onClick={(e) => {
+                      e.stopPropagation();
+                      setImageToDelete(img.id);
+                      }}
+                      className="cursor-pointer absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg 
+                         opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-[-10px] group-hover:translate-y-0"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+               ))}
+            </div>
+
+            {/* 2. THE MODAL (LIGHTBOX) */}
+            {selectedIdx !== null && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-300">
+                <button onClick={closeImage} className="cursor-pointer absolute top-6 right-6 text-white hover:text-gray-300 z-50">
+                 <X size={32} />
+                </button>
+          
+                <button onClick={prevImage} className="absolute left-4 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+                 <ChevronLeft size={48} />
+                </button>
+
+                <div className="relative w-[90vw] h-[80vh]">
+                  <CldImage
+                    src={IMAGES[selectedIdx].link}
+                    alt={IMAGES[selectedIdx].link}
+                    fill 
+                    preserveTransformations // Keeps original aspect ratio
+                    className="object-contain"
+                  />
+
+                </div>
+
+                <button onClick={nextImage} className="absolute right-4 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+                 <ChevronRight size={48} />
+                </button>
+              </div>
+            )}
+
+          </div>
+          
+        )
+      }
+      
+      {imageToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl max-w-sm w-full shadow-2xl scale-in-center">
+             <div className="flex flex-col items-center text-center">
+                <div className="bg-red-500/10 p-3 rounded-full mb-4">
+                  <Trash2 size={32} className="text-red-500" />
+                </div>
+        
+                <h3 className="text-xl font-bold text-white mb-2">Delete Image?</h3>
+                <p className="text-zinc-400 mb-6 text-sm">
+                  This action cannot be undone. This image will be permanently removed from your gallery.
+                </p>
+        
+                <div className="flex gap-3 w-full">
+                <button
+                  disabled={isDeleting}
+                  onClick={() => setImageToDelete(null)}
+                  className="cursor-pointer flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isDeleting}
+                  onClick={async () => {
+                    setIsDeleting(true);
+                    await handleDelete(imageToDelete);
+                    setIsDeleting(false);
+                    setImageToDelete(null);
+                  }}
+                  className="cursor-pointer flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? <Loader2 className="animate-spin" size={18} /> : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

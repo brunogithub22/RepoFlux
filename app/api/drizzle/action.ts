@@ -1,11 +1,14 @@
 // app/api/tasks/actions.ts
-'use server';
 
 import { languages,images } from "@/src/db/schema";
 import { addRow,deleteRow,searchItem,getAllRows, } from "@/src/db/admin/dbOperation";
 
 export const actions: Record<string, (payload: any) => Promise<any>> = {
   newLanguage: async (data) => {
+    const check = await searchItem(languages,{language: data.language});
+    if(check){
+        return {message: 'language alrealdy exists'};
+    }
     const result = await addRow(languages, { id: crypto.randomUUID(), language: data.language });
     if(result){
         return { message: 'language added' };
@@ -22,7 +25,7 @@ export const actions: Record<string, (payload: any) => Promise<any>> = {
     }
   },
   removeLanguage: async (data) =>{
-    const result = await deleteRow(languages,data.id);
+    const result = await deleteRow(languages,{ id: data.Id });
     if(result){
         return {message: 'language removed' };
     }else{
@@ -30,11 +33,23 @@ export const actions: Record<string, (payload: any) => Promise<any>> = {
     }
   },
   newImage: async (data)=>{
+    const check = await searchItem(images,{link: data.image});
+    if(check){
+        return {message: 'image alrealdy exists'};
+    }
     const result = await addRow(images, { id: crypto.randomUUID(), link: data.image });
     if(result){
         return { message: 'image added' };
     }else{
         return { message: 'image not added' };
+    }
+  },
+  getImages: async () =>{
+    const result = await getAllRows(images);
+    if(result.length > 0){
+        return result;
+    }else{
+        return [];
     }
   }
 };
