@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { getSupabaseBrowserClient } from "@/lib/superbase/client";
 import { JSX, useState } from 'react';
 import Overview from '@/components/admin/Overview';
-import Content from '@/components/admin/Content';
+import Content from '@/components/admin/Content/Content';
 import Post from '@/components/admin/Post';
 import Language from '@/components/admin/Language';
 import { 

@@ -162,20 +162,36 @@ export default function Language() {
        </ul>
       )}
       <div className="mt-3">
-        <h5 className=" font-medium text-gray-500 dark:text-gray-400">Languages</h5>
-        <ul className="  mt-2 max-h-80 w-full overflow-y-auto bg-white dark:bg-zinc-950">
-         {myLanguages.map(lang => (
-          <li
-            key={lang.id}
-            className="p-2 flex items-center gap-2"
-          >
-          <button className='cursor-pointer' onClick={ async ()=> await deleteLanguages(lang.id)}>
-            <Trash2 size={20}/>
-          </button>  
-          <span> - {lang.language}</span>
-        </li>
-        ))}
-       </ul>
+        
+        <div>
+
+        </div>
+        {myLanguages.length > 0 ? 
+          (<div>
+            <h5 className=" font-medium text-gray-500 dark:text-gray-400">Languages</h5>
+            <ul className="  mt-2 max-h-80 w-full overflow-y-auto bg-white dark:bg-zinc-950">
+              {myLanguages.map(lang => (
+                <li
+                  key={lang.id}
+                  className="p-2 flex items-center gap-2"
+                >
+                  <button className='cursor-pointer' onClick={ async ()=> await deleteLanguages(lang.id)}>
+                    <Trash2 size={20}/>
+                  </button>  
+                   <span> - {lang.language}</span>
+                 </li>
+              ))}
+            </ul>
+          </div>)
+          : (
+            <div className="mt-4 p-4 rounded-xl border border-dashed text-center text-sm text-gray-400 dark:border-zinc-800">
+              <p className="font-medium mb-1">No languages added yet</p>
+              <p>Search for a language above and click it to add</p>
+            </div>
+          )
+        }
+        
+        
       </div>
 
     </div>

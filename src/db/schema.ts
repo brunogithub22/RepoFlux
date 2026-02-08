@@ -41,6 +41,35 @@ export const languages = pgTable('languages', {
   language: text('language')
 });
 
+export const feedback = pgTable('feedback', 
+  {
+    id: uuid('id').primaryKey().notNull(),
+    name: text('name'),
+    feedback: text('feedback'),
+    postId: uuid().notNull(),
+  },
+  (table) =>({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
+  })
+);
+
+export const videos = pgTable('videos', 
+  {
+    id: uuid('id').primaryKey().notNull(),
+    link: text('link'),
+    postId: uuid().notNull(),
+  },
+  (table) =>({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
+  })
+);
+
 export const postLanguage = pgTable(
   "post_language",
   {

@@ -1,18 +1,20 @@
 // app/api/tasks/actions.ts
+'use server';
 
-import { addLanguage,deleteLanguage,getAllLanguages } from "@/src/db/admin/dbOperation";
+import { languages,images } from "@/src/db/schema";
+import { addRow,deleteRow,searchItem,getAllRows, } from "@/src/db/admin/dbOperation";
 
 export const actions: Record<string, (payload: any) => Promise<any>> = {
   newLanguage: async (data) => {
-    const result = await addLanguage(data.language);
+    const result = await addRow(languages, { id: crypto.randomUUID(), language: data.language });
     if(result){
-        return { status: 200,message: 'language added' };
+        return { message: 'language added' };
     }else{
-        return { status: 404,message: 'language not added' };
+        return { message: 'language not added' };
     }
   },
   getLanguages: async () =>{
-    const result = await getAllLanguages();
+    const result = await getAllRows(languages);
     if(result.length > 0){
         return result;
     }else{
@@ -20,11 +22,19 @@ export const actions: Record<string, (payload: any) => Promise<any>> = {
     }
   },
   removeLanguage: async (data) =>{
-    const result = await deleteLanguage(data.id);
+    const result = await deleteRow(languages,data.id);
     if(result){
-        return { status: 200,message: 'language removed' };
+        return {message: 'language removed' };
     }else{
-        return { status: 404,message: 'language not removed' };
+        return {message: 'language not removed' };
+    }
+  },
+  newImage: async (data)=>{
+    const result = await addRow(images, { id: crypto.randomUUID(), link: data.image });
+    if(result){
+        return { message: 'image added' };
+    }else{
+        return { message: 'image not added' };
     }
   }
 };
