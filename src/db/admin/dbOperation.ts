@@ -32,7 +32,7 @@ export async function addRow<T extends PgTable<TableConfig>>(
 }
 
 // Delete a language by ID
-export async function deleteRow<T extends PgTable>(table: T,criteria: InferInsertModel<T>) {
+export async function deleteRow<T extends PgTable>(table: T,criteria: Partial<InferInsertModel<T>>) {
   try {    
     const columns = getTableColumns(table);
     const filters = Object.entries(criteria).map(([key, value]) => {  

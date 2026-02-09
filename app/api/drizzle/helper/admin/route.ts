@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { actions } from '@/app/api/drizzle/action';
+import { ActionAdmin } from '@/app/api/drizzle/action';
 
 export async function POST(request: Request) {
   try {
     const { actionName, payload } = await request.json();
 
     // Look up the function in our actions object
-    const selectedFunction = actions[actionName];
+    const selectedFunction = ActionAdmin[actionName];
 
     if (!selectedFunction) {
       return NextResponse.json({ error: "Invalid function name" }, { status: 400 });

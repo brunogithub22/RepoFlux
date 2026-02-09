@@ -3,7 +3,7 @@
 import { languages,images } from "@/src/db/schema";
 import { addRow,deleteRow,searchItem,getAllRows, } from "@/src/db/admin/dbOperation";
 
-export const actions: Record<string, (payload: any) => Promise<any>> = {
+export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
   newLanguage: async (data) => {
     const check = await searchItem(languages,{language: data.language});
     if(check){
@@ -37,7 +37,7 @@ export const actions: Record<string, (payload: any) => Promise<any>> = {
     if(check){
         return {message: 'image alrealdy exists'};
     }
-    const result = await addRow(images, { id: crypto.randomUUID(), link: data.image });
+    const result = await addRow(images, { id: crypto.randomUUID(), public_id: data.public_id, link: data.image });
     if(result){
         return { message: 'image added' };
     }else{
@@ -51,5 +51,17 @@ export const actions: Record<string, (payload: any) => Promise<any>> = {
     }else{
         return [];
     }
-  }
+  },
+  removeImage: async (data) =>{
+    const result = await deleteRow(images,{ public_id: data.publicId });
+    if(result){
+        return {message: 'image removed' };
+    }else{
+        return {message: 'image not removed' };
+    }
+  },
+};
+
+export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
+
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback} from 'react';
-import { Search, Loader2, Code2, Trash2 } from 'lucide-react';
+import { Search, Loader2, Code2, Trash2,CheckCircle2,ShieldXIcon,CircleAlert } from 'lucide-react';
 
 interface Language {
   id: string;
@@ -9,6 +9,10 @@ interface Language {
 }
 
 export default function Language() {
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [message, setMessage] = useState("");
+  const [state, setState] = useState<"idle" | "success" | "warning" | "error">("idle");
+
   const [languages, setLanguages] = useState<string[]>([]);
   const [myLanguages,setMyLanguages] = useState<Language[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,13 +91,16 @@ export default function Language() {
 
       switch (result.result.message) {
         case 'language added':
-          alert('language successfully added to the database!');
+          setMessage('language successfully added to the database!');
+          setState("success");
           break;
         case 'language already exists':
-          alert('This language already exists in the database.');
+          setMessage('This language already exists in the database.');
+          setState("warning");
           break;
         default:
-          alert('Unexpected response: ' + result.result.message);
+          setMessage('Unexpected response: ' + result.result.message);
+          setState("error");
       }
 
       await fetchLanguage();
@@ -196,6 +203,43 @@ export default function Language() {
         
         
       </div>
+
+      {/* CUSTOM SUCCESS MODAL */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+            <div className="flex flex-col items-center text-center">
+
+              {state === "success"  ? (
+                <div className="bg-green-500/10 p-4 rounded-full mb-4">
+                  <CheckCircle2 size={48} className="text-green-500" />
+                </div>
+              ):(
+                state === "warning" ?(
+                  <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
+                    <CircleAlert size={48} className="text-yellow-500" />
+                  </div>
+                ):(
+                  <div className="bg-red-500/10 p-4 rounded-full mb-4">
+                    <ShieldXIcon size={48} className="text-red-500" />
+                  </div>
+                )
+              )}
+              
+              <h3 className="text-xl font-bold text-white mb-2">Upload Complete!</h3>
+              <p className="text-zinc-400 mb-6">
+                {message}
+              </p>
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

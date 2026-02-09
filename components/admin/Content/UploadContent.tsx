@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { UploadCloud, Image, CheckCircle2, ShieldXIcon,CircleAlert } from 'lucide-react';
-import { stat } from 'fs';
 
 type CloudinaryResourceType = "image";
 
@@ -35,7 +34,7 @@ export default function UploadContent() {
         },
         body: JSON.stringify({
           actionName: actionName,
-          payload: { image: info.secure_url } // Passing the parameter
+          payload: { image: info.secure_url, public_id: info.public_id } // Passing the parameter
         }),
       });
   
@@ -96,7 +95,7 @@ export default function UploadContent() {
           // 2. Use optional chaining so it doesn't crash if open is undefined
           onClick={() => open?.()}
           // 3. Visual feedback: dim the button if it's not ready yet
-          className={`max-w-sm w-full flex flex-col items-center justify-center gap-4 py-10
+          className={`cursor-pointer max-w-sm w-full flex flex-col items-center justify-center gap-4 py-10
                  transition-all rounded-2xl ${
                    !open 
                     ? "opacity-50 cursor-wait bg-zinc-900/50" 
@@ -118,7 +117,7 @@ export default function UploadContent() {
 
   {/* CUSTOM SUCCESS MODAL */}
       {showSuccess && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
             <div className="flex flex-col items-center text-center">
 
@@ -140,11 +139,11 @@ export default function UploadContent() {
               
               <h3 className="text-xl font-bold text-white mb-2">Upload Complete!</h3>
               <p className="text-zinc-400 mb-6">
-                Your image has been successfully synced with the database.
+                {message}
               </p>
               <button
                 onClick={() => setShowSuccess(false)}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+                className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
               >
                 Continue
               </button>

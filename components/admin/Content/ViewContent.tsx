@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState,useCallback } from 'react';
 import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, Maximize2, Trash2,Loader2 } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
@@ -8,21 +8,21 @@ import { CldImage } from 'next-cloudinary';
 interface GalleryImage {
   id: string;
   link: string;
+  public_id: string;
 }
 
 export default function ViewContent() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [languages, setLanguages] = useState<string[]>([]);
   const [IMAGES, setIMAGES] = useState<GalleryImage[]>([]);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  async function handleDelete(id: string) {}
-
-  useEffect(()=>{
-    async function fetchImages(){
+  const fetchImages = useCallback(async () => {
       const actionName = "getImages"; // The "function name" your API expects
 
       try {  
+        
         const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
           method: 'POST',
           headers: {
@@ -39,18 +39,59 @@ export default function ViewContent() {
         if (!response.ok) {
           throw new Error(result.error || "Failed to add language");
         }
-
-         console.log("Success:", result);
-
-         setIMAGES(result.result);
-
+        console.log("Success:", result);
+        setIMAGES(result.result);
       } catch (error) {
         console.error("Error calling API:", error);
       }
-    }
-    fetchImages();
     
-  },[]);
+  }, []);
+
+  async function handleDelete(id: string) {
+    const actionName = "removeImage"; // The "function name" your API expects
+
+      try {  
+
+        await Promise.all([
+          fetch('/api/claudinary/removeImage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ publicId: id }),
+          }) 
+          .then((res) => {
+            if (!res.ok) throw new Error("Delete failed from claudinary"); 
+              return res.json();
+          }).then((data) => {
+            console.log(data);
+          })
+          .catch((err) => console.error(err)),
+        
+          fetch('/api/drizzle/helper/admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              payload: { publicId: id },
+              actionName: actionName
+            })
+          }) 
+          .then((res) => {
+            if (!res.ok) throw new Error("Delete failed from database"); 
+              return res.json();
+          }).then((data) => {
+            console.log(data);
+          })
+          .catch((err) => console.error(err))
+        ]);
+
+        await fetchImages();
+      } catch (error) {
+        console.error("Error calling API:", error);
+      }
+  }
+
+  useEffect(()=>{
+    fetchImages();
+  },[fetchImages]);
 
   const openImage = (index: number) => setSelectedIdx(index);
   const closeImage = () => setSelectedIdx(null);
@@ -72,12 +113,12 @@ export default function ViewContent() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {IMAGES.map((img, index) => (
                 <div 
-                 key={img.id} 
+                 key={img.public_id} 
                  className="group relative aspect-square overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900 cursor-pointer"
                  onClick={() => openImage(index)}
                 >
                   <CldImage
-                   src={img.link} //
+                   src={img.link} 
                    alt ={img.link}
                    fill 
                    crop="fill"
@@ -93,10 +134,10 @@ export default function ViewContent() {
                     <button
                       onClick={(e) => {
                       e.stopPropagation();
-                      setImageToDelete(img.id);
+                      setImageToDelete(img.public_id);
                       }}
                       className="cursor-pointer absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg 
-                         opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-[-10px] group-hover:translate-y-0"
+                         opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2.5 group-hover:translate-y-0"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -139,7 +180,7 @@ export default function ViewContent() {
       }
       
       {imageToDelete && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl max-w-sm w-full shadow-2xl scale-in-center">
              <div className="flex flex-col items-center text-center">
                 <div className="bg-red-500/10 p-3 rounded-full mb-4">
