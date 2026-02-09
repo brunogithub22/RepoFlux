@@ -114,17 +114,17 @@ export default function ViewContent() {
               {IMAGES.map((img, index) => (
                 <div 
                  key={img.public_id} 
-                 className="group relative aspect-square overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900 cursor-pointer"
-                 onClick={() => openImage(index)}
+                 className="group relative flex flex-col items-center"
+                  onClick={() => openImage(index)}
                 >
                   <CldImage
                    src={img.link} 
                    alt ={img.link}
-                   fill 
-                   crop="fill"
-                   gravity="auto" // Focuses on the most important part of the image
-                   className="object-cover transition-transform duration-300 group-hover:scale-110" 
-                   sizes="(max-width: 768px) 50vw, 25vw"
+                   width={400} 
+                   height={400}
+                   crop="fit"
+                   className="object-cover transition-transform duration-300 group-hover:scale-101" 
+                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                   />
                   {/* Overlay Layer */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-4">
@@ -161,7 +161,7 @@ export default function ViewContent() {
                   <CldImage
                     src={IMAGES[selectedIdx].link}
                     alt={IMAGES[selectedIdx].link}
-                    fill 
+                    fill
                     preserveTransformations // Keeps original aspect ratio
                     className="object-contain"
                   />
