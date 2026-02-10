@@ -18,7 +18,7 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         
         {/* Logo Section */}
-        <Link href="/" className="group flex items-center gap-2 transition-transform active:scale-95">
+        <Link href="/dashboard" className="group flex items-center gap-2 transition-transform active:scale-95">
           <div className="relative w-9 h-9">
             <Image 
               src="/icon.svg" 

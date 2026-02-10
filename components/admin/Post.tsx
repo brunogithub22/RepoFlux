@@ -1,16 +1,75 @@
 "use client";
-import React, { useState } from "react";
-import { Plus, Type, ImageIcon, Video,Trash2 } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import { CldImage } from 'next-cloudinary';
+import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image} from "lucide-react";
 
-export default function DynamicCMSEditor() {
-  const [blocks, setBlocks] = useState<any[]>([]);
+interface LinkYoutube{
+  id: string,
+  title: string,
+  thumbnail: string,
+  videoUrl: string,
+  embedUrl: string
+}
+
+interface Block{
+  type: string
+  content: string
+}
+
+interface GalleryImage {
+  id: string;
+  link: string;
+  public_id: string;
+}
+
+export default function Post() {
+  const [blocks, setBlocks] = useState<Block[]>([]);
   const [content, setContent] = useState("");
   const [mediaImage, setMediaImage] = useState(false);
+  const [IMAGES, setIMAGES] = useState<GalleryImage[]>([]);
   const [mediaVideo, setMediaVideo] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [videoYoutube,setVideoYoutube] = useState<LinkYoutube[]>();
 
+  const fetchVideos = async () => {
+    setMediaVideo(true);
+    setLoading(true);
+    const res = await fetch('/api/youtube');
+    const data = await res.json();
+    setVideoYoutube(data);
+    setLoading(false);
+  };
+
+  const fetchImage = async () =>{
+    const actionName = "getImages"; // The "function name" your API expects
+    setMediaImage(true);
+    setLoading(true);
+    try {   
+      const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          actionName: actionName,
+          payload: {  } // Passing the parameter
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to add language");
+      }
+      console.log("Success:", result);
+      setIMAGES(result.result);
+    } catch (error) {
+      console.error("Error calling API:", error);
+    }
+    setLoading(false);
+  }
 
   
   // Add a Text Block
@@ -99,7 +158,16 @@ export default function DynamicCMSEditor() {
                 />
               )}
 
-              {block.type === "media" && (
+              {block.type === "youtube" && (
+                <div className="rounded-xl overflow-hidden border border-zinc-800">
+                   <iframe 
+                     src={block.content} 
+                     className="w-full aspect-video rounded-xl"
+                    />
+                </div>
+              )}
+
+              {block.type === "image" && (
                 <div className="rounded-xl overflow-hidden border border-zinc-800">
                    <img src={block.content} className="w-full object-cover" alt="Asset" />
                 </div>
@@ -129,50 +197,155 @@ export default function DynamicCMSEditor() {
             <div className="grid grid-cols-1 gap-1">
               <MenuButton icon={<Type size={16}/>} label="Text Block" onClick={() => {addTextBlock(); setOpen(false);}} />
               <MenuButton icon={<Type size={16}/>} label="Text Area Block" onClick={() => {addTextAreaBlock(); setOpen(false);}} />              
-              <MenuButton icon={<ImageIcon size={16}/>} label="Cloudinary Media" onClick={() => {setMediaImage(); setOpen(false);}} />
-              <MenuButton icon={<Video size={16}/>} label="YouTube Video" onClick={() => {; setOpen(false);}} />
+              <MenuButton icon={<ImageIcon size={16}/>} label="Cloudinary Media" onClick={() => {fetchImage(); setOpen(false);}} />
+              <MenuButton icon={<Video size={16}/>} label="YouTube Video" onClick={() => {fetchVideos(); setOpen(false);}} />
             </div>
           </div>
         )}
       </div>
 
       {/* CUSTOM SUCCESS MODAL */}
-      { && (
+      {mediaImage && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
-            <div className="flex flex-col items-center text-center">
+          
+          <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Image size={25}/>
+              My Images
+            </h2>
+            <button onClick={() => setMediaImage(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+          </div>
 
-              {state === "success"  ? (
-                <div className="bg-green-500/10 p-4 rounded-full mb-4">
-                  <CheckCircle2 size={48} className="text-green-500" />
-                </div>
-              ):(
-                state === "warning" ?(
-                  <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
-                    <CircleAlert size={48} className="text-yellow-500" />
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                 {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-video bg-zinc-800 animate-pulse rounded-xl" />)}
+              </div>
+            ) : (
+              <div>
+                {IMAGES.length === 0 ? (
+                  <div>
+                    <span className="text-sm font-medium border-b border-zinc-800 group-hover:border-zinc-400 transition-all">
+                      Empty, go to Content Upload 
+                    </span>     
                   </div>
-                ):(
-                  <div className="bg-red-500/10 p-4 rounded-full mb-4">
-                    <ShieldXIcon size={48} className="text-red-500" />
+                ): (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    {IMAGES.map((img, index) => (
+                      <div 
+                       key={img.public_id} 
+                       className="group relative flex flex-col items-center" 
+                      >
+                        <CldImage
+                         src={img.link} 
+                         alt ={img.link}
+                         width={400} 
+                         height={400}
+                         crop="fit"
+                         className="object-cover transition-transform duration-300 group-hover:scale-101" 
+                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        />
+                      </div>
+                    ))}
                   </div>
-                )
-              )}
-              
-              <h3 className="text-xl font-bold text-white mb-2">Upload Complete!</h3>
-              <p className="text-zinc-400 mb-6">
-                {message}
-              </p>
-              <button
-                onClick={() => setShowSuccess(false)}
-                className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
-              >
-                Continue
-              </button>
-            </div>
+                )}
+                
+              </div>
+            )}
+          </div>
+
           </div>
         </div>
       )}
 
+      {/* CUSTOM SUCCESS MODAL */}
+      {mediaVideo && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden flex flex-col">
+      
+          <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+            <span className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">▶</span>
+              RepoFlux Channel
+            </h2>
+            <button onClick={() => setMediaVideo(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                 {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-video bg-zinc-800 animate-pulse rounded-xl" />)}
+              </div>
+            ) : (
+              <div >
+                {videoYoutube?.length === 0 ? (
+                  <div>
+                     <Link 
+                        href={process.env.CHANNEL_YOUTUBE_LINK!} 
+                        className="group inline-flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors duration-200"
+                      >
+                        <span className="text-sm font-medium border-b border-zinc-800 group-hover:border-zinc-400 transition-all">
+                          Upload a video
+                        </span>
+                        <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
+                      </Link>
+                  </div>
+                ): (
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                    {videoYoutube?.map(video =>(
+                    <div key={video.id}>
+                      <button
+                        onClick={() => {
+                          setMediaVideo(false); 
+                          setBlocks([...blocks, { type: "youtube", content: video.embedUrl }]);
+                        }}
+                        className="cursor-pointer group flex flex-col gap-3 text-left focus:outline-none"
+                       >
+                       {/* THUMBNAIL CONTAINER */}
+                        <div className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-red-500 group-focus:ring-2 group-focus:ring-red-500 transition-all duration-300">
+                          <img 
+                            src={video.thumbnail} 
+                            alt={video.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+            
+                          {/* OVERLAY ON HOVER */}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <div className="bg-red-600 text-white p-3 rounded-full shadow-xl transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                              <Plus size={24} />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                  
+                      {/* VIDEO INFO */}
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-semibold text-zinc-300 group-hover:text-white line-clamp-2 leading-snug">
+                          {video.title}
+                        </h4>
+                        <a 
+                          href={video.videoUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 text-sm font-medium hover:text-white hover:border-zinc-700 hover:bg-zinc-800 transition-all group"
+                        >
+                          <Youtube size={16} className="text-zinc-500 group-hover:text-red-500 transition-colors" />
+                          <span>View on YouTube</span>
+                          <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
+                        </a>
+                      </div>
+                    </div>    
+                  ))}
+                  </div>
+                )}  
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

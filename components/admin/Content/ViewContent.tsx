@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState,useCallback } from 'react';
-import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, Maximize2, Trash2,Loader2 } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
 
@@ -19,31 +18,30 @@ export default function ViewContent() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchImages = useCallback(async () => {
-      const actionName = "getImages"; // The "function name" your API expects
+    const actionName = "getImages"; // The "function name" your API expects
 
-      try {  
-        
-        const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            actionName: actionName,
-            payload: {  } // Passing the parameter
-          }),
-        });
+    try {   
+      const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          actionName: actionName,
+          payload: {  } // Passing the parameter
+        }),
+      });
     
-        const result = await response.json();
-      
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to add language");
-        }
-        console.log("Success:", result);
-        setIMAGES(result.result);
-      } catch (error) {
-        console.error("Error calling API:", error);
+      const result = await response.json();
+    
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to add language");
       }
+      console.log("Success:", result);
+      setIMAGES(result.result);
+    } catch (error) {
+      console.error("Error calling API:", error);
+    }
     
   }, []);
 
