@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date ,foreignKey} from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date ,jsonb,foreignKey} from "drizzle-orm/pg-core";
 import { Video } from "lucide-react";
 
 // Posts table - owned by a user
@@ -8,6 +8,7 @@ export const posts = pgTable('posts', {
   type: text('type'),
   description: text('description'),
   date: date('date'),
+  content: jsonb('content'),
 });
 
 // Images table - owned by a user
