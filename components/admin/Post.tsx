@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CldImage } from 'next-cloudinary';
-import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image} from "lucide-react";
+import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check} from "lucide-react";
 
 interface LinkYoutube{
   id: string,
@@ -14,7 +14,7 @@ interface LinkYoutube{
 
 interface Block{
   type: string
-  content: string
+  content: string | string[]
 }
 
 interface GalleryImage {
@@ -34,6 +34,13 @@ export default function Post() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoYoutube,setVideoYoutube] = useState<LinkYoutube[]>();
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+
+  const toggleSelection = (id: string) => {
+    setSelectedImages(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   const fetchVideos = async () => {
     setMediaVideo(true);
@@ -161,7 +168,7 @@ export default function Post() {
               {block.type === "youtube" && (
                 <div className="rounded-xl overflow-hidden border border-zinc-800">
                    <iframe 
-                     src={block.content} 
+                     src={block.content as string}  
                      className="w-full aspect-video rounded-xl"
                     />
                 </div>
@@ -169,7 +176,22 @@ export default function Post() {
 
               {block.type === "image" && (
                 <div className="rounded-xl overflow-hidden border border-zinc-800">
-                   <img src={block.content} className="w-full object-cover" alt="Asset" />
+                  {block.content.length > 1 ? (
+                    <div>
+                    </div>
+                  ):(
+                    <div>
+                      <CldImage
+                        src={block.content[0]} 
+                        alt ={block.content[0]}
+                        width={400} 
+                        height={400}
+                        crop="fit"
+                        className="object-cover transition-transform duration-300 group-hover:scale-101" 
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -206,8 +228,8 @@ export default function Post() {
 
       {/* CUSTOM SUCCESS MODAL */}
       {mediaImage && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+        <div className="fixed w-full inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+         <div className="bg-zinc-900 border border-zinc-800  rounded-3xl max-w-4xl max-h-[85vh] shadow-2xl scale-in-center">
           
           <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -231,31 +253,67 @@ export default function Post() {
                     </span>     
                   </div>
                 ): (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    {IMAGES.map((img, index) => (
-                      <div 
-                       key={img.public_id} 
-                       className="group relative flex flex-col items-center" 
-                      >
-                        <CldImage
-                         src={img.link} 
-                         alt ={img.link}
-                         width={400} 
-                         height={400}
-                         crop="fit"
-                         className="object-cover transition-transform duration-300 group-hover:scale-101" 
-                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        />
-                      </div>
-                    ))}
+                  <div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {IMAGES.map((img, index) =>{
+                        const isSelected = selectedImages.includes(img.public_id);
+                        return(                 
+                          <div 
+                           key={img.public_id} 
+                           className="group relative flex flex-col items-center" 
+                           onClick={() => toggleSelection(img.public_id)}
+                          >
+                            {/* THE SELECTOR CIRCLE */}
+                            <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+                              ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-black/20 border-white/50 backdrop-blur-md'}`}
+                            >
+                              {isSelected && <Check size={14} className="text-white" strokeWidth={4} />}
+                            </div>
+                            <CldImage
+                              src={img.link} 
+                              alt ={img.link}
+                              width={400} 
+                              height={400}
+                              crop="fit"
+                              className="object-cover transition-transform duration-300 group-hover:scale-101" 
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            />
+                          </div>
+                        )
+                      })}  
+                    </div>  
+                    <div className="p-6 border-t border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+                      <p className="text-sm text-zinc-400">
+                        {selectedImages.length} assets selected
+                      </p>
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => setSelectedImages([])} 
+                          className="text-sm text-zinc-500 hover:text-white"
+                        >
+                          Clear
+                       </button>
+                       <button 
+                         disabled={selectedImages.length === 0}
+                         onClick={() => {
+                           console.log("Selected Images:", selectedImages);
+                           setBlocks([...blocks,{type:"image",content: selectedImages}])
+                           setMediaImage(false);
+                         }}
+                         className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-xl font-bold text-sm transition-colors"
+                       >
+                         Add Assets
+                      </button>
+                     </div>
+                    </div>
                   </div>
+                  
                 )}
-                
               </div>
             )}
           </div>
 
-          </div>
+         </div>
         </div>
       )}
 
