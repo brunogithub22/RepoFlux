@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CldImage } from 'next-cloudinary';
-import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check,ChevronLeft,ChevronRight} from "lucide-react";
+import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart} from "lucide-react";
 
 interface LinkYoutube{
   id: string,
@@ -14,13 +14,13 @@ interface LinkYoutube{
 
 interface Block{
   type: string
-  content: string | GalleryImage[]
+  content: Gallery[] | string;
 }
 
-interface GalleryImage {
+interface Gallery {
   id: string;
   link: string;
-  public_id: string;
+  public_id?: string;
   text: string;
 }
 
@@ -28,18 +28,18 @@ export default function Post() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [content, setContent] = useState("");
   const [mediaImage, setMediaImage] = useState(false);
-  const [IMAGES, setIMAGES] = useState<GalleryImage[]>([]);
+  const [IMAGES, setIMAGES] = useState<Gallery[]>([]);
   const [mediaVideo, setMediaVideo] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoYoutube,setVideoYoutube] = useState<LinkYoutube[]>();
-  const [selectedImages, setSelectedImages] = useState<GalleryImage[]>([]);
+  const [selectedImages, setSelectedImages] = useState<Gallery[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
 
 
-  const toggleSelection = async (img: GalleryImage) => {
+  const toggleSelection = async (img: Gallery) => {
     setSelectedImages(prev => 
       prev.includes(img) ? prev.filter(item => item !== img) : [...prev, img]
     );
@@ -83,12 +83,12 @@ export default function Post() {
 
   
   // Add a Text Block
-  const addTextBlock = () => {
+  const addTextBlock = async () => {
     setBlocks([...blocks, { type: "textBlock", content: "" }]);
   };
 
   // Add a Text Block
-  const addTextAreaBlock = () => {
+  const addTextAreaBlock = async () => {
     setBlocks([...blocks, { type: "textAreaBlock", content: "" }]);
   };
 
@@ -98,22 +98,43 @@ export default function Post() {
     }
   }
 
-  const nextImage = (length: number) => {
-  setSelectedIdx((prev) => {
-    const nextIdx = (prev + 1) % length;
-    console.log("Current Index:", nextIdx); // This prints the new index
-    return nextIdx;
-  });
-};
+  const nextImage = async (length: number) => {
+    setSelectedIdx((prev) => {
+      const nextIdx = (prev + 1) % length;
+      console.log("Current Index:", nextIdx); // This prints the new index
+      return nextIdx;
+    });
+  };
 
-// Helper to handle the "Previous" logic
-const prevImage = (length: number) => {
-  setSelectedIdx((prev) => {
-    const nextIdx = (prev - 1 + length) % length;
-    console.log("Current Index:", nextIdx); // This prints the new index
-    return nextIdx;
-  });
-};
+  // Helper to handle the "Previous" logic
+  const prevImage = async (length: number) => {
+    setSelectedIdx((prev) => {
+      const nextIdx = (prev - 1 + length) % length;
+      console.log("Current Index:", nextIdx); // This prints the new index
+      return nextIdx;
+    });
+  };
+
+  const publish = async () =>{
+    const response = await fetch('/api/post', { // Use the path to your route.ts
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          blog: blocks
+        }),
+      });
+  
+      const result = await response.json();
+    
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to add language");
+      }
+
+      console.log("Success:", result);
+
+  };
 
   return (
     <div onClick={closeDropdown} className=" mx-auto p-10 space-y-10 bg-zinc-950 text-zinc-200 min-h-screen font-sans">
@@ -123,7 +144,7 @@ const prevImage = (length: number) => {
           <h1 className="text-2xl font-bold text-white tracking-tight" >{title=="" ? "Project Title": title}</h1>
           <p className="text-zinc-500 text-sm">{description == "" ? "Describe the high-level process..." : description}.</p>
         </div>
-        <button className="cursor-pointer px-5 py-2 bg-white text-black font-semibold rounded-full hover:bg-zinc-200 transition text-sm">
+        <button onClick={publish} className="cursor-pointer px-5 py-2 bg-white text-black font-semibold rounded-full hover:bg-zinc-200 transition text-sm">
           Publish
         </button>
       </header>
@@ -144,6 +165,83 @@ const prevImage = (length: number) => {
             className="w-full bg-transparent text-zinc-400 placeholder:text-zinc-800 outline-none border-none focus:ring-0 resize-none"
             rows={2}
           />
+            {(() => { 
+const materials = [
+  { name: "Next.js 15", category: "Software", icon: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742786/RepoFlux/ewkbghmfcgsddhfmsvic.png" },
+  { name: "Sony A7IV", category: "Hardware", icon: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742777/RepoFlux/hkfhlxegnjnekzkq7kwa.png" },
+  // ... rest of your items
+];
+
+return (
+  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-8 bg-black">
+    {materials.map((item) => (
+      <div 
+        key={item.name} 
+        className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-500 transition-all duration-300"
+      >
+        {/* Glow effect on hover */}
+        <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        
+        <div className="w-12 h-12 mb-4">
+          <CldImage
+            src={item.icon}
+            alt={item.name}
+            width={48}
+            height={48}
+            className="grayscale group-hover:grayscale-0 transition-all"
+          />
+        </div>
+        
+        <p className="text-[10px] uppercase tracking-tighter text-zinc-500 font-bold">
+          {item.category}
+        </p>
+        <h3 className="text-zinc-200 text-sm font-medium mt-1">
+          {item.name}
+        </h3>
+      </div>
+    ))}
+  </div>
+);
+
+            })()} {/* Note the extra () around the function and at the end */}
+
+
+                        {(() => { 
+const amazonItems = [
+  { name: "Sony A7IV", price: "$2,499", link: "https://amazon.com/...", img: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742786/RepoFlux/ewkbghmfcgsddhfmsvic.png" },
+  { name: "MacBook Pro M3", price: "$1,999", link: "https://amazon.com/...", img: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742777/RepoFlux/hkfhlxegnjnekzkq7kwa.png" }
+];
+
+return (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {amazonItems.map((item) => (
+      <a 
+        key={item.name}
+        href={item.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all"
+      >
+        <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl bg-white/5">
+           <CldImage src={item.img} fill alt={item.name} className="object-contain p-4 group-hover:scale-105 transition-transform" />
+        </div>
+        
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="text-zinc-200 font-medium">{item.name}</h4>
+            <span className="text-blue-500 font-bold text-sm">{item.price}</span>
+          </div>
+          <div className="p-2 bg-orange-500/10 rounded-lg">
+             <ShoppingBag size={18} className="text-orange-500" />
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+);
+            })()} {/* Note the extra () around the function and at the end */}
+
+
         </section>
 
         {/* DYNAMIC BLOCKS */}
@@ -184,77 +282,88 @@ const prevImage = (length: number) => {
                 />
               )}
 
-              {block.type === "youtube" && (
-                <div className="rounded-xl overflow-hidden border border-zinc-800">
-                   <iframe 
-                     src={block.content as string}  
+              {block.type === "youtube" && (()=>{
+                const contents = block.content as Gallery[];
+                return(
+                  <div className="rounded-xl overflow-hidden border border-zinc-800">
+                    <iframe 
+                     src={contents[0].link}  
                      className="w-full aspect-video rounded-xl"
                     />
-                </div>
-              )}
+                    <textarea
+                      className="w-full mt-2 bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
+                      placeholder="Write a caption for this video..."
+                      rows={2}
+                      onChange={(e)=>{
+                        const newBlocks = [...blocks];
+                        const targetImage = newBlocks[index].content[selectedIdx] as Gallery;
+                        targetImage.text = e.target.value;
+                        setBlocks(newBlocks);
+                      }}
+                    />
+                  </div>
+                )
+              })()}
 
               {block.type === "image" && (() => {
-                
-                const listImage:GalleryImage[] = block.content as GalleryImage[];
+                const listImage:Gallery[] = block.content as Gallery[];
                 // 1. Determine which image to show based on content length
-                const activeImage: string = block.content.length > 1 
-                  ? block.content[selectedIdx].link.toString() 
-                  : block.content[0].link.toString();
- 
+                const activeImage: string = listImage.length > 1 
+                  ? listImage[selectedIdx].link.toString() 
+                  : listImage[0].link.toString();
                 // 2. Fallback check (Expert advice: always ensure the object exists)
-                if (!activeImage?.link) return null;
-
-                
+                if (!activeImage?.link) return null;                
                 return (
-                  
                     <div className="flex flex-col gap-4 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-4">
-  
-  {/* Image Container: Keep the aspect ratio here */}
-  <div className="relative w-full  aspect-[16/9] rounded-lg overflow-hidden">
-    
-    {/* Navigation Buttons (These stay absolute inside the image) */}
-    {block.content.length > 1 && (
-      <>
-        <button onClick={() => prevImage(listImage.length)} className="z-20 absolute left-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-          <ChevronLeft size={32} />
-        </button>
+                      {/* Image Container: Keep the aspect ratio here */}
+                      <div className="relative w-full justify-center items-center flex  aspect-[16/9] rounded-lg overflow-hidden">
+                        {/* Navigation Buttons (These stay absolute inside the image) */}
+                        {listImage.length > 1 && (
+                          <>
+                            <button onClick={() => prevImage(listImage.length)} className="z-20 absolute left-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+                              <ChevronLeft size={32} />
+                            </button>
 
-        <button onClick={() => nextImage(listImage.length)} className="z-20 absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
-          <ChevronRight size={32} />
-        </button>
-      </>
-    )}
-
-     <CldImage
-
-                        src={activeImage}
-
-                        alt ={activeImage}
-
-                        width={400}
-
-                        height={400}
-
-                        crop="fit"
-
-                        className="object-cover h-auto w-auto "
-
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-
+                            <button onClick={() => nextImage(listImage.length)} className="z-20 absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+                              <ChevronRight size={32} />
+                            </button>
+                          </>
+                        )}
+                        <div>
+                          <CldImage
+                            src={activeImage}
+                            alt ={activeImage}
+                            width={400}
+                            height={400}
+                            crop="fit"
+                            className="object-cover h-auto w-auto "
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          />
+                        </div>
+                        
+                      </div>
+                      {/* 2. Textarea is now physically below the image with a gap */}
+                      <textarea
+                        className="w-full bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
+                        placeholder="Write a caption for this image..."
+                        value={
+                          typeof blocks[index].content[selectedIdx] === 'object'  
+                            ? (blocks[index].content[selectedIdx] as Gallery).text || "" 
+                            : ""
+                        }
+                        rows={2}
+                        onChange={(e) => {
+                          const newBlocks = [...blocks];
+                          const targetImage = newBlocks[index].content[selectedIdx] as Gallery;
+                          targetImage.text = e.target.value;
+                          setBlocks(newBlocks);
+                        }}
                       />
-  </div>
-
-  {/* 2. Textarea is now physically below the image with a gap */}
-  <textarea
-    className="w-full bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
-    placeholder="Write a caption for this image..."
-    rows={2}
-  />
-</div>
-                  
-                  
+                    </div>
                 );
               })()}
+
+              
             </div>
           ))}
         </div>
@@ -282,6 +391,8 @@ const prevImage = (length: number) => {
               <MenuButton icon={<Type size={16}/>} label="Text Area Block" onClick={() => {addTextAreaBlock(); setOpen(false);}} />              
               <MenuButton icon={<ImageIcon size={16}/>} label="Cloudinary Media" onClick={() => {fetchImage(); setOpen(false);}} />
               <MenuButton icon={<Video size={16}/>} label="YouTube Video" onClick={() => {fetchVideos(); setOpen(false);}} />
+              <MenuButton icon={<LinkIcon size={16}/>} label="List" onClick={() => { setOpen(false);}} />
+              <MenuButton icon={<ShoppingCart size={16}/>} label="Link products" onClick={() => { setOpen(false);}} />
             </div>
           </div>
         )}
@@ -418,8 +529,9 @@ const prevImage = (length: number) => {
                     <div key={video.id}>
                       <button
                         onClick={() => {
-                          setMediaVideo(false); 
-                          setBlocks([...blocks, { type: "youtube", content: video.embedUrl }]);
+                          setMediaVideo(false);
+                          const contents: Gallery[] = [{id: video.id,link: video.embedUrl , text: ""}]; 
+                          setBlocks([...blocks, { type: "youtube", content: contents}]);
                         }}
                         className="cursor-pointer group flex flex-col gap-3 text-left focus:outline-none"
                        >
