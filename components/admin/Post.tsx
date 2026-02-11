@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CldImage } from 'next-cloudinary';
-import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check} from "lucide-react";
+import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check,ChevronLeft,ChevronRight} from "lucide-react";
 
 interface LinkYoutube{
   id: string,
@@ -14,7 +14,7 @@ interface LinkYoutube{
 
 interface Block{
   type: string
-  content: string | string[]
+  content: string | GalleryImage[]
 }
 
 interface GalleryImage {
@@ -34,11 +34,13 @@ export default function Post() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [videoYoutube,setVideoYoutube] = useState<LinkYoutube[]>();
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<GalleryImage[]>([]);
+  const [selectedIdx, setSelectedIdx] = useState<number>(0);
 
-  const toggleSelection = (id: string) => {
+
+  const toggleSelection = (img: GalleryImage) => {
     setSelectedImages(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+      prev.includes(img) ? prev.filter(item => item !== img) : [...prev, img]
     );
   };
 
@@ -142,7 +144,7 @@ export default function Post() {
                 <input
                   className="w-full bg-transparent outline-none text-zinc-300 leading-relaxed resize-none"
                   placeholder="Enter text content..."
-                  value={block.content}
+                  value={block.content as string}
                   onChange={(e) => {
                     const newBlocks = [...blocks];
                     newBlocks[index].content = e.target.value;
@@ -156,7 +158,7 @@ export default function Post() {
                   className="w-full bg-transparent outline-none text-zinc-300 leading-relaxed resize-none"
                   placeholder="Enter text area content..."
                   rows={5}
-                  value={block.content}
+                  value={block.content as string}
                   onChange={(e) => {
                     const newBlocks = [...blocks];
                     newBlocks[index].content = e.target.value;
@@ -174,26 +176,29 @@ export default function Post() {
                 </div>
               )}
 
-              {block.type === "image" && (
-                <div className="rounded-xl overflow-hidden border border-zinc-800">
-                  {block.content.length > 1 ? (
-                    <div>
-                    </div>
-                  ):(
-                    <div>
-                      <CldImage
-                        src={block.content[0]} 
-                        alt ={block.content[0]}
-                        width={400} 
-                        height={400}
-                        crop="fit"
-                        className="object-cover transition-transform duration-300 group-hover:scale-101" 
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+              {block.type === "image" && (() => {
+                // 1. Determine which image to show based on content length
+                const activeImage: string = block.content.length > 1 
+                      ? block.content[selectedIdx].link.toString() 
+                      : block.content[0].link.toString();
+ 
+                // 2. Fallback check (Expert advice: always ensure the object exists)
+                if (!activeImage?.link) return null;
+
+                return (
+                  <div className="rounded-xl overflow-hidden border border-zinc-800">
+                    <CldImage
+                      src={activeImage} 
+                      alt ={activeImage}
+                      width={400} 
+                      height={400}
+                      crop="fit"
+                      className="object-cover h-auto w-auto" 
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                  />
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -256,12 +261,12 @@ export default function Post() {
                   <div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {IMAGES.map((img, index) =>{
-                        const isSelected = selectedImages.includes(img.public_id);
+                        const isSelected = selectedImages.includes(img);
                         return(                 
                           <div 
                            key={img.public_id} 
                            className="group relative flex flex-col items-center" 
-                           onClick={() => toggleSelection(img.public_id)}
+                           onClick={() => toggleSelection(img)}
                           >
                             {/* THE SELECTOR CIRCLE */}
                             <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
@@ -299,6 +304,7 @@ export default function Post() {
                            console.log("Selected Images:", selectedImages);
                            setBlocks([...blocks,{type:"image",content: selectedImages}])
                            setMediaImage(false);
+                           setSelectedImages([]);
                          }}
                          className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-xl font-bold text-sm transition-colors"
                        >
