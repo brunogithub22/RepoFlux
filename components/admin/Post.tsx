@@ -21,6 +21,7 @@ interface GalleryImage {
   id: string;
   link: string;
   public_id: string;
+  text: string;
 }
 
 export default function Post() {
@@ -38,7 +39,7 @@ export default function Post() {
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
 
 
-  const toggleSelection = (img: GalleryImage) => {
+  const toggleSelection = async (img: GalleryImage) => {
     setSelectedImages(prev => 
       prev.includes(img) ? prev.filter(item => item !== img) : [...prev, img]
     );
@@ -97,6 +98,22 @@ export default function Post() {
     }
   }
 
+  const nextImage = (length: number) => {
+  setSelectedIdx((prev) => {
+    const nextIdx = (prev + 1) % length;
+    console.log("Current Index:", nextIdx); // This prints the new index
+    return nextIdx;
+  });
+};
+
+// Helper to handle the "Previous" logic
+const prevImage = (length: number) => {
+  setSelectedIdx((prev) => {
+    const nextIdx = (prev - 1 + length) % length;
+    console.log("Current Index:", nextIdx); // This prints the new index
+    return nextIdx;
+  });
+};
 
   return (
     <div onClick={closeDropdown} className=" mx-auto p-10 space-y-10 bg-zinc-950 text-zinc-200 min-h-screen font-sans">
@@ -177,26 +194,65 @@ export default function Post() {
               )}
 
               {block.type === "image" && (() => {
+                
+                const listImage:GalleryImage[] = block.content as GalleryImage[];
                 // 1. Determine which image to show based on content length
                 const activeImage: string = block.content.length > 1 
-                      ? block.content[selectedIdx].link.toString() 
-                      : block.content[0].link.toString();
+                  ? block.content[selectedIdx].link.toString() 
+                  : block.content[0].link.toString();
  
                 // 2. Fallback check (Expert advice: always ensure the object exists)
                 if (!activeImage?.link) return null;
 
+                
                 return (
-                  <div className="rounded-xl overflow-hidden border border-zinc-800">
-                    <CldImage
-                      src={activeImage} 
-                      alt ={activeImage}
-                      width={400} 
-                      height={400}
-                      crop="fit"
-                      className="object-cover h-auto w-auto" 
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  />
-                  </div>
+                  
+                    <div className="flex flex-col gap-4 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-4">
+  
+  {/* Image Container: Keep the aspect ratio here */}
+  <div className="relative w-full  aspect-[16/9] rounded-lg overflow-hidden">
+    
+    {/* Navigation Buttons (These stay absolute inside the image) */}
+    {block.content.length > 1 && (
+      <>
+        <button onClick={() => prevImage(listImage.length)} className="z-20 absolute left-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+          <ChevronLeft size={32} />
+        </button>
+
+        <button onClick={() => nextImage(listImage.length)} className="z-20 absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+          <ChevronRight size={32} />
+        </button>
+      </>
+    )}
+
+     <CldImage
+
+                        src={activeImage}
+
+                        alt ={activeImage}
+
+                        width={400}
+
+                        height={400}
+
+                        crop="fit"
+
+                        className="object-cover h-auto w-auto "
+
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+
+                      />
+  </div>
+
+  {/* 2. Textarea is now physically below the image with a gap */}
+  <textarea
+    className="w-full bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
+    placeholder="Write a caption for this image..."
+    rows={2}
+  />
+</div>
+                  
+                  
                 );
               })()}
             </div>

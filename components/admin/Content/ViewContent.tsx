@@ -91,10 +91,10 @@ export default function ViewContent() {
     fetchImages();
   },[fetchImages]);
 
-  const openImage = (index: number) => setSelectedIdx(index);
-  const closeImage = () => setSelectedIdx(null);
-  const nextImage = () => setSelectedIdx((prev) => (prev !== null ? (prev + 1) % IMAGES.length : null));
-  const prevImage = () => setSelectedIdx((prev) => (prev !== null ? (prev - 1 + IMAGES.length) % IMAGES.length : null));
+  const openImage = async (index: number) => setSelectedIdx(index);
+  const closeImage = async () => setSelectedIdx(null);
+  const nextImage = async () => setSelectedIdx((prev) => (prev !== null ? (prev + 1) % IMAGES.length : null));
+  const prevImage = async () => setSelectedIdx((prev) => (prev !== null ? (prev - 1 + IMAGES.length) % IMAGES.length : null));
 
   return (
     
@@ -125,9 +125,9 @@ export default function ViewContent() {
                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                   />
                   {/* Overlay Layer */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-4">
+                  <div className="cursor-pointer absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-4">
                     {/* View Icon */}
-                    <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={24} />
+                    <Maximize2 className=" text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={24} />
                     {/* DELETE BUTTON */}
                     <button
                       onClick={(e) => {
@@ -151,11 +151,11 @@ export default function ViewContent() {
                  <X size={32} />
                 </button>
           
-                <button onClick={prevImage} className="absolute left-4 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+                <button onClick={prevImage} className="cursor-pointer z-51 absolute left-4 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
                  <ChevronLeft size={48} />
                 </button>
 
-                <div className="relative w-[90vw] h-[80vh]">
+                <div className="relative w-[90vw] h-[80vh] z-50">
                   <CldImage
                     src={IMAGES[selectedIdx].link}
                     alt={IMAGES[selectedIdx].link}
@@ -166,7 +166,7 @@ export default function ViewContent() {
 
                 </div>
 
-                <button onClick={nextImage} className="absolute right-4 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
+                <button onClick={nextImage} className="cursor-pointer z-51 absolute right-4 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
                  <ChevronRight size={48} />
                 </button>
               </div>
