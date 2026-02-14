@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CldImage } from 'next-cloudinary';
-import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart} from "lucide-react";
+import { Plus, Type, ImageIcon, Video,Trash2,Youtube,ExternalLink,ArrowUpRight,Image ,Check,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart, List} from "lucide-react";
 
 interface LinkYoutube{
   id: string,
@@ -24,12 +24,22 @@ interface Gallery {
   text: string;
 }
 
+interface Item{
+  category?: string;
+  name: string;
+  link?: string;
+  icon: string;
+}
+
 export default function Post() {
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [content, setContent] = useState("");
+  const [linkItem, setlinkItem] = useState<Item[]>();
+  const [listItem, setlistItem] = useState<Item[]>();
   const [mediaImage, setMediaImage] = useState(false);
   const [IMAGES, setIMAGES] = useState<Gallery[]>([]);
   const [mediaVideo, setMediaVideo] = useState(false);
+  const [mediaLink,setMediaLink] = useState(false);
+  const [mediaList,setMediaList] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [open, setOpen] = useState(false);
@@ -165,82 +175,6 @@ export default function Post() {
             className="w-full bg-transparent text-zinc-400 placeholder:text-zinc-800 outline-none border-none focus:ring-0 resize-none"
             rows={2}
           />
-            {(() => { 
-const materials = [
-  { name: "Next.js 15", category: "Software", icon: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742786/RepoFlux/ewkbghmfcgsddhfmsvic.png" },
-  { name: "Sony A7IV", category: "Hardware", icon: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742777/RepoFlux/hkfhlxegnjnekzkq7kwa.png" },
-  // ... rest of your items
-];
-
-return (
-  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-8 bg-black">
-    {materials.map((item) => (
-      <div 
-        key={item.name} 
-        className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-500 transition-all duration-300"
-      >
-        {/* Glow effect on hover */}
-        <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
-        
-        <div className="w-12 h-12 mb-4">
-          <CldImage
-            src={item.icon}
-            alt={item.name}
-            width={48}
-            height={48}
-            className="grayscale group-hover:grayscale-0 transition-all"
-          />
-        </div>
-        
-        <p className="text-[10px] uppercase tracking-tighter text-zinc-500 font-bold">
-          {item.category}
-        </p>
-        <h3 className="text-zinc-200 text-sm font-medium mt-1">
-          {item.name}
-        </h3>
-      </div>
-    ))}
-  </div>
-);
-
-            })()} {/* Note the extra () around the function and at the end */}
-
-
-                        {(() => { 
-const amazonItems = [
-  { name: "Sony A7IV", price: "$2,499", link: "https://amazon.com/...", img: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742786/RepoFlux/ewkbghmfcgsddhfmsvic.png" },
-  { name: "MacBook Pro M3", price: "$1,999", link: "https://amazon.com/...", img: "https://res.cloudinary.com/duz0sn8az/image/upload/v1770742777/RepoFlux/hkfhlxegnjnekzkq7kwa.png" }
-];
-
-return (
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {amazonItems.map((item) => (
-      <a 
-        key={item.name}
-        href={item.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all"
-      >
-        <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl bg-white/5">
-           <CldImage src={item.img} fill alt={item.name} className="object-contain p-4 group-hover:scale-105 transition-transform" />
-        </div>
-        
-        <div className="flex justify-between items-start">
-          <div>
-            <h4 className="text-zinc-200 font-medium">{item.name}</h4>
-            <span className="text-blue-500 font-bold text-sm">{item.price}</span>
-          </div>
-          <div className="p-2 bg-orange-500/10 rounded-lg">
-             <ShoppingBag size={18} className="text-orange-500" />
-          </div>
-        </div>
-      </a>
-    ))}
-  </div>
-);
-            })()} {/* Note the extra () around the function and at the end */}
-
 
         </section>
 
@@ -316,7 +250,7 @@ return (
                 return (
                     <div className="flex flex-col gap-4 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-4">
                       {/* Image Container: Keep the aspect ratio here */}
-                      <div className="relative w-full justify-center items-center flex  aspect-[16/9] rounded-lg overflow-hidden">
+                      <div className="relative w-full justify-center items-center flex  aspect-video rounded-lg overflow-hidden">
                         {/* Navigation Buttons (These stay absolute inside the image) */}
                         {listImage.length > 1 && (
                           <>
@@ -363,6 +297,68 @@ return (
                 );
               })()}
 
+              {block.type === "list" && (() => {
+                
+                return(
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-8 bg-black">
+                    {listItem?.map((item) => (
+                      <div 
+                        key={item.name} 
+                        className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-500 transition-all duration-300"
+                      >
+                        {/* Glow effect on hover */}
+                        <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        
+                        <div className="w-12 h-12 mb-4">
+                          <CldImage
+                            src={item.icon}
+                            alt={item.name}
+                            width={48}
+                            height={48}
+                            className="grayscale group-hover:grayscale-0 transition-all"
+                          />
+                        </div>
+        
+                        <p className="text-[10px] uppercase tracking-tighter text-zinc-500 font-bold">
+                          {item.category}
+                        </p>
+                        <h3 className="text-zinc-200 text-sm font-medium mt-1">
+                          {item.name}
+                        </h3>
+                      </div>
+                    ))}
+                  </div>
+                );  
+              })()}
+
+              {block.type === "link" && (() => {
+                return(
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {linkItem?.map((item) => (
+                      <a 
+                        key={item.name}
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all"
+                      >
+                        <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl bg-white/5">
+                           <CldImage src={item.icon} fill alt={item.name} className="object-contain p-4 group-hover:scale-105 transition-transform" />
+                        </div>
+        
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-zinc-200 font-medium">{item.name}</h4>
+                          </div>
+                          <div className="p-2 bg-orange-500/10 rounded-lg">
+                            <ShoppingBag size={18} className="text-orange-500" />
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                );  
+              })() }
               
             </div>
           ))}
@@ -379,7 +375,6 @@ return (
           `}
         >
           <Plus size={18} className={`transition-transform duration-300 ${open ? "rotate-45" : ""}`} />
-          Add Content
         </button>
 
         {/* BEAUTIFUL DROPDOWN */}
@@ -391,8 +386,8 @@ return (
               <MenuButton icon={<Type size={16}/>} label="Text Area Block" onClick={() => {addTextAreaBlock(); setOpen(false);}} />              
               <MenuButton icon={<ImageIcon size={16}/>} label="Cloudinary Media" onClick={() => {fetchImage(); setOpen(false);}} />
               <MenuButton icon={<Video size={16}/>} label="YouTube Video" onClick={() => {fetchVideos(); setOpen(false);}} />
-              <MenuButton icon={<LinkIcon size={16}/>} label="List" onClick={() => { setOpen(false);}} />
-              <MenuButton icon={<ShoppingCart size={16}/>} label="Link products" onClick={() => { setOpen(false);}} />
+              <MenuButton icon={<List size={16}/>} label="List Items" onClick={() => {setMediaList(true); setOpen(false);}} />
+              <MenuButton icon={<ShoppingCart size={16}/>} label="Link Items" onClick={() => {setMediaLink(true); setOpen(false);}} />
             </div>
           </div>
         )}
@@ -411,7 +406,7 @@ return (
             <button onClick={() => setMediaImage(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div className="flex-1 p-6">
             {loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                  {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-video bg-zinc-800 animate-pulse rounded-xl" />)}
@@ -426,17 +421,17 @@ return (
                   </div>
                 ): (
                   <div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="overflow-y-auto max-h-[40vh] p-6 custom-scrollbar grid grid-cols-2 md:grid-cols-3 gap-4">
                       {IMAGES.map((img, index) =>{
                         const isSelected = selectedImages.includes(img);
                         return(                 
                           <div 
                            key={img.public_id} 
-                           className="group relative flex flex-col items-center" 
+                           className="cursor-pointer group relative flex flex-col items-center" 
                            onClick={() => toggleSelection(img)}
                           >
                             {/* THE SELECTOR CIRCLE */}
-                            <div className={`absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+                            <div className={` absolute top-2 right-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
                               ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-black/20 border-white/50 backdrop-blur-md'}`}
                             >
                               {isSelected && <Check size={14} className="text-white" strokeWidth={4} />}
@@ -447,7 +442,7 @@ return (
                               width={400} 
                               height={400}
                               crop="fit"
-                              className="object-cover transition-transform duration-300 group-hover:scale-101" 
+                              className=" object-cover transition-transform duration-300 group-hover:scale-101" 
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                             />
                           </div>
@@ -461,7 +456,7 @@ return (
                       <div className="flex gap-3">
                         <button 
                           onClick={() => setSelectedImages([])} 
-                          className="text-sm text-zinc-500 hover:text-white"
+                          className="cursor-pointer text-sm text-zinc-500 hover:text-white"
                         >
                           Clear
                        </button>
@@ -473,7 +468,7 @@ return (
                            setMediaImage(false);
                            setSelectedImages([]);
                          }}
-                         className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-xl font-bold text-sm transition-colors"
+                         className="cursor-pointer px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-xl font-bold text-sm transition-colors"
                        >
                          Add Assets
                       </button>
@@ -503,7 +498,7 @@ return (
             <button onClick={() => setMediaVideo(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto max-h-[40vh] p-6 custom-scrollbar">
             {loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                  {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-video bg-zinc-800 animate-pulse rounded-xl" />)}
@@ -573,11 +568,49 @@ return (
                   </div>
                 )}  
               </div>
-            )}
+             )}
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
+
+      {mediaLink && (() => {
+        return(
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <LinkIcon size={25}/>
+                  My links
+                </h2>
+                <button onClick={() => setMediaLink(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+              </div>
+
+
+  
+            </div>
+          </div>
+        );
+      })() }
+
+      {mediaList && (() => {
+        return(
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden flex flex-col">
+              <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <List size={25}/>
+                  My list of item
+                </h2>
+                <button onClick={() => setMediaList(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+              </div>
+
+
+              
+            </div>
+          </div>
+        );
+      })() }
     </div>
   );
 }
