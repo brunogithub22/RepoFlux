@@ -3,12 +3,8 @@
 import { useEffect, useState,useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize2, Trash2,Loader2 } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
+import {GalleryImage} from "@/components/intefaces"
 
-interface GalleryImage {
-  id: string;
-  link: string;
-  public_id: string;
-}
 
 export default function ViewContent() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -16,10 +12,12 @@ export default function ViewContent() {
   const [IMAGES, setIMAGES] = useState<GalleryImage[]>([]);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [loading, setLoading] = useState(false);  
+    
 
   const fetchImages = useCallback(async () => {
+    setLoading(true);   
     const actionName = "getImages"; // The "function name" your API expects
-
     try {   
       const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
         method: 'POST',
@@ -42,7 +40,7 @@ export default function ViewContent() {
     } catch (error) {
       console.error("Error calling API:", error);
     }
-    
+    setLoading(false);   
   }, []);
 
   async function handleDelete(id: string) {
@@ -99,49 +97,57 @@ export default function ViewContent() {
   return (
     
     <div className="p-6">
-      {
-        IMAGES.length === 0 ? (
-          <div>
-            <p className="text-gray-500 dark:text-gray-400">No images found. Please upload some content to view it here.</p>
-          </div>
-        ) : (
-          <div>
-            <h2 className="text-2xl font-bold mb-6 dark:text-white">Media Gallery</h2>
-            {/* 1. THE GRID */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {IMAGES.map((img, index) => (
-                <div 
-                 key={img.public_id} 
-                 className="group relative flex flex-col items-center"
-                  onClick={() => openImage(index)}
-                >
-                  <CldImage
-                   src={img.link} 
-                   alt ={img.link}
-                   width={400} 
-                   height={400}
-                   crop="fit"
-                   className="object-cover transition-transform duration-300 group-hover:scale-101" 
-                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  />
-                  {/* Overlay Layer */}
-                  <div className="cursor-pointer absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-4">
-                    {/* View Icon */}
-                    <Maximize2 className=" text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={24} />
-                    {/* DELETE BUTTON */}
-                    <button
-                      onClick={(e) => {
-                      e.stopPropagation();
-                      setImageToDelete(img.public_id);
-                      }}
-                      className="cursor-pointer absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg 
-                         opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2.5 group-hover:translate-y-0"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+      {loading ? 
+            (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[1,2,3,4,5,6].map(i => <div key={i} className="aspect-video bg-zinc-800 animate-pulse rounded-xl" />)}
                 </div>
-               ))}
+            ) : (
+              <div>
+                {IMAGES.length === 0 ? (
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">No images found. Please upload some content to view it here.</p>
+                  </div>
+                ) : (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6 dark:text-white">Media Gallery</h2>
+                    {/* 1. THE GRID */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {IMAGES.map((img, index) => (
+                        <div 
+                          key={img.public_id} 
+                          className="group relative flex flex-col items-center"
+                          onClick={() => openImage(index)}
+                        > 
+                          <CldImage
+                            src={img.link} 
+                            alt ={img.link}
+                            width={400} 
+                            height={400}
+                            crop="fit"
+                            className="object-cover transition-transform duration-300 group-hover:scale-101" 
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          />
+                          {/* Overlay Layer */}
+                          <div className="cursor-pointer absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center gap-4">
+                            {/* View Icon */}
+                            <Maximize2 className=" text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={24} />
+                            {/* DELETE BUTTON */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setImageToDelete(img.public_id);
+                              }}
+                              className="cursor-pointer absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg 
+                                opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2.5 group-hover:translate-y-0"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    )
+                  }
             </div>
 
             {/* 2. THE MODAL (LIGHTBOX) */}
@@ -176,6 +182,9 @@ export default function ViewContent() {
           
         )
       }
+              </div>
+            )}
+      
       
       {imageToDelete && (
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">

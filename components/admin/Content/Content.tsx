@@ -43,7 +43,7 @@ export default function Content(){
             
                      {/* Active Indicator Line */}
                      {isActive && (
-                       <div className="absolute bottom-[-8px] left-0 right-0 h-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
+                       <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full" />
                      )}
                     </button>
                   );

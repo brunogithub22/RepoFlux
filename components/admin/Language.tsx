@@ -2,11 +2,8 @@
 
 import { useState, useEffect, useCallback} from 'react';
 import { Search, Loader2, Code2, Trash2,CheckCircle2,ShieldXIcon,CircleAlert } from 'lucide-react';
+import  { LanguageType } from '@/components/intefaces';
 
-interface Language {
-  id: string;
-  language: string;
-}
 
 export default function Language() {
   const [showSuccess, setShowSuccess] = useState(false);
@@ -14,7 +11,7 @@ export default function Language() {
   const [state, setState] = useState<"idle" | "success" | "warning" | "error">("idle");
 
   const [languages, setLanguages] = useState<string[]>([]);
-  const [myLanguages,setMyLanguages] = useState<Language[]>([]);
+  const [myLanguages,setMyLanguages] = useState<LanguageType[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState<string>("");
 

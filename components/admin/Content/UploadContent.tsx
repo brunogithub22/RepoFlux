@@ -3,19 +3,8 @@
 import { useState } from 'react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { UploadCloud, Image, CheckCircle2, ShieldXIcon,CircleAlert } from 'lucide-react';
+import {CloudinaryUploadInfo} from "@/components/intefaces";
 
-type CloudinaryResourceType = "image";
-
-interface CloudinaryUploadInfo {
-  asset_id: string;
-  public_id: string;
-  secure_url: string;
-  resource_type: CloudinaryResourceType;
-  format: string;
-  width?: number;
-  height?: number;
-  duration?: number; // videos only
-}
 
 export default function UploadContent() {
 
