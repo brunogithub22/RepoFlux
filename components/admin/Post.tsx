@@ -5,13 +5,12 @@ import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
 import LoadList from "@/components/admin/component/AddList";
-import { Plus, Type, ImageIcon, Image,Video,Trash2,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart, List} from "lucide-react";
+import { Plus, Type, ImageIcon, Image,Video,Trash2,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart, List,Pencil} from "lucide-react";
 import { CldImage } from 'next-cloudinary';
 
 export default function Post() {
   
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [listItem, setlistItem] = useState<Item[]>([]);
   const [mediaVideo, setMediaVideo] = useState(false);
   const [mediaLink,setMediaLink] = useState(false);
   const [mediaList,setMediaList] = useState(false);
@@ -41,11 +40,11 @@ export default function Post() {
   }
 
   const addLink = async (Item: Item[]) =>{
-    setBlocks([...blocks,{type:"image",content: Item}])
+    setBlocks([...blocks,{type:"link",content: Item}])
   }
 
   const addList = async (Item: Item[]) =>{
-    setBlocks([...blocks,{type:"image",content: Item}])
+    setBlocks([...blocks,{type:"list",content: Item}])
   }
 
   const nextImage = async (length: number) => {
@@ -64,6 +63,8 @@ export default function Post() {
       return nextIdx;
     });
   };
+
+  const handleEdit = async (index:number) =>{}
 
   const publish = async () =>{
     const response = await fetch('/api/post', { // Use the path to your route.ts
@@ -100,7 +101,7 @@ export default function Post() {
       </header>
 
       {/* SCROLLABLE CONTENT AREA */}
-      <div className="overflow-y-auto max-h-[60vh] pr-4 space-y-5 custom-scrollbar">
+      <div className="overflow-y-auto max-h-[65vh] pr-4 space-y-5 custom-scrollbar">
         {/* METADATA SECTION */}
         <section className="space-y-4">
           <input
@@ -124,9 +125,16 @@ export default function Post() {
             <div key={index} className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-all">
               <div className="absolute -left-10 top-6 text-xs font-mono text-zinc-700">0{index + 1}</div>
               
-              {/* DELETE BUTTON (Visible on Hover) */}
               <button onClick={()=>setBlocks(blocks.filter((_, i) => i !== index))} className="cursor-pointer absolute -right-3 -top-3 p-2 bg-red-900/20 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition hover:bg-red-900/40">
                 <Trash2 size={14} />
+              </button>
+
+              <button 
+                onClick={() => handleEdit(index)} // You will define this function
+                className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-colors" 
+                title="Edit item"
+              >
+                <Pencil size={14} />
               </button>
 
               {block.type === "textBlock" && (
@@ -251,13 +259,15 @@ export default function Post() {
                         {/* Glow effect on hover */}
                         <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
         
-                        <div className="w-12 h-12 mb-4">
+                        <div className="mb-4">
                           <CldImage
-                            src={item.icon}
+                            src={item.icon.link}
                             alt={item.name}
-                            width={48}
-                            height={48}
-                            className="grayscale group-hover:grayscale-0 transition-all"
+                            width={200}
+                            height={200}
+                            crop="fit"
+                            className="object-cover h-auto w-auto "
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                           />
                         </div>
                         <h3 className="text-zinc-200 text-sm font-medium mt-1">
@@ -281,13 +291,21 @@ export default function Post() {
                         href={item.link ? item.link : ""}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all"
+                        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all h-full"
                       >
-                        <div className="relative aspect-square w-full mb-4 overflow-hidden rounded-xl bg-white/5">
-                           <CldImage src={item.icon} fill alt={item.name} className="object-contain p-4 group-hover:scale-105 transition-transform" />
+                        <div className="relative flex justify-center  w-full mb-4 overflow-hidden rounded-xl bg-white/5">
+                          <CldImage
+                            src={item.icon.link}
+                            alt={item.name}
+                            width={400}
+                            height={400}
+                            crop="fit"
+                            className="object-cover h-auto w-auto "
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          />
                         </div>
         
-                        <div className="flex justify-between items-start">
+                        <div className="mt-auto flex justify-between items-start">
                           <div>
                             <h4 className="text-zinc-200 font-medium">{item.name}</h4>
                           </div>
@@ -345,7 +363,7 @@ export default function Post() {
               </h2>
               <button onClick={() => setMediaImage(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
             </div>
-            <LoadImage onClose={() => setMediaImage(false)} onSave={addImages} />
+            <LoadImage onClose={() => setMediaImage(false)} onSave={addImages} isItem={false}/>
           </div>
         </div>
       )}

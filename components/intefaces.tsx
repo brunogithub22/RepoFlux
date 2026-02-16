@@ -15,13 +15,13 @@ export interface Gallery {
   id: string;
   link: string;
   public_id?: string;
-  text: string;
+  text?: string;
 }
 
 export interface Item{
   name: string;
-  link?: string | null;
-  icon: string;
+  link?: string;
+  icon: Gallery;
 }
 
 export interface LanguageType {

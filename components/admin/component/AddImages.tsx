@@ -3,7 +3,7 @@ import {Check} from "lucide-react";
 import { useEffect, useState } from "react";
 import { CldImage } from 'next-cloudinary';
 
-export default function LoadImage({ onClose, onSave }: { onClose: () => void, onSave: (images: Gallery[]) => void }){
+export default function LoadImage({ onClose, onSave, isItem }: { onClose: () => void, onSave: (images: Gallery[]) => void ,isItem: boolean}){
 
     useEffect(()=>{
         fetchImage();
@@ -14,9 +14,16 @@ export default function LoadImage({ onClose, onSave }: { onClose: () => void, on
     const [loading, setLoading] = useState(false);  
     
     const toggleSelection = async (img: Gallery) => {
-      setSelectedImages(prev => 
+      if(isItem === true && selectedImages.length>0){
+        setSelectedImages(prev => 
+         prev.includes(img) ? [] : [img]
+        );
+      }else{
+        setSelectedImages(prev => 
          prev.includes(img) ? prev.filter(item => item !== img) : [...prev, img]
-      );
+        );
+      }
+      
     };
 
     const fetchImage = async () =>{
@@ -89,17 +96,22 @@ export default function LoadImage({ onClose, onSave }: { onClose: () => void, on
                                 )
                               })}  
                             </div>  
-                            <div className="p-6 border-t border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-                              <p className="text-sm text-zinc-400">
-                                {selectedImages.length} assets selected
-                              </p>
+                            <div className={`p-6 border-t border-zinc-800 flex ${isItem ? 'justify-center' : 'justify-between'}  items-center bg-zinc-900/50`}>
+                              {!isItem && (
+                                <p className="text-sm text-zinc-400">
+                                  {selectedImages.length} assets selected
+                                </p>
+                              )}
                               <div className="flex gap-3">
-                                <button 
-                                  onClick={() => setSelectedImages([])} 
-                                  className="cursor-pointer text-sm text-zinc-500 hover:text-white"
-                                >
-                                  Clear
-                               </button>
+                                {!isItem &&(
+                                  <button 
+                                    onClick={() => setSelectedImages([])} 
+                                    className="cursor-pointer text-sm text-zinc-500 hover:text-white"
+                                  >
+                                    Clear
+                                  </button>
+                                )}
+                                
                                <button 
                                  disabled={selectedImages.length === 0}
                                  onClick={() => {
