@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
-import {Item,Block,Gallery} from "@/components/intefaces"
+import {Item,Block,Gallery,ImageChange} from "@/components/intefaces"
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
 import LoadList from "@/components/admin/component/AddList";
 import { Plus, Type, ImageIcon, Image,Video,Trash2,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart, List,Pencil} from "lucide-react";
 import { CldImage } from 'next-cloudinary';
+import ChangeImageComponent from "./component/ChangeImage";
 
 export default function Post() {
   
@@ -19,6 +20,7 @@ export default function Post() {
   const [open, setOpen] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
   const [mediaImage, setMediaImage] = useState(false);
+  const [ChangeImage,setChangeImage] = useState<ImageChange | null>(null);
 
   
   // Add a Text Block
@@ -50,7 +52,6 @@ export default function Post() {
   const nextImage = async (length: number) => {
     setSelectedIdx((prev) => {
       const nextIdx = (prev + 1) % length;
-      console.log("Current Index:", nextIdx); // This prints the new index
       return nextIdx;
     });
   };
@@ -59,12 +60,9 @@ export default function Post() {
   const prevImage = async (length: number) => {
     setSelectedIdx((prev) => {
       const nextIdx = (prev - 1 + length) % length;
-      console.log("Current Index:", nextIdx); // This prints the new index
       return nextIdx;
     });
   };
-
-  const handleEdit = async (index:number) =>{}
 
   const publish = async () =>{
     const response = await fetch('/api/post', { // Use the path to your route.ts
@@ -129,14 +127,6 @@ export default function Post() {
                 <Trash2 size={14} />
               </button>
 
-              <button 
-                onClick={() => handleEdit(index)} // You will define this function
-                className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-colors" 
-                title="Edit item"
-              >
-                <Pencil size={14} />
-              </button>
-
               {block.type === "textBlock" && (
                 <input
                   className="w-full bg-transparent outline-none text-zinc-300 leading-relaxed resize-none"
@@ -178,7 +168,7 @@ export default function Post() {
                       rows={2}
                       onChange={(e)=>{
                         const newBlocks = [...blocks];
-                        const targetImage = newBlocks[index].content[selectedIdx] as Gallery;
+                        const targetImage = newBlocks[index].content[0] as Gallery;
                         targetImage.text = e.target.value;
                         setBlocks(newBlocks);
                       }}
@@ -196,12 +186,38 @@ export default function Post() {
                 // 2. Fallback check (Expert advice: always ensure the object exists)
                 if (!activeImage?.link) return null;                
                 return (
+                    
                     <div className="flex flex-col gap-4 w-full rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-4">
-                      {/* Image Container: Keep the aspect ratio here */}
+                      
                       <div className="relative w-full justify-center items-center flex  aspect-video rounded-lg overflow-hidden">
-                        {/* Navigation Buttons (These stay absolute inside the image) */}
                         {listImage.length > 1 && (
-                          <>
+                          <> 
+                          {/* Container positioned in the top-right corner */}
+                          <div className="absolute top-2 right-2 flex gap-2 z-10">
+                             {/* EDIT BUTTON */}
+                              <button 
+                                onClick={() => setChangeImage({indexBLock: index, indexImage: selectedIdx})} 
+                                className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-all" 
+                                title="Edit item"
+                              >
+                                <Pencil size={14} />
+                              </button>
+
+                              {/* DELETE BUTTON */}
+                              <button 
+                                onClick={() => { 
+                                  const newImage = listImage.filter((_,i) => i !== selectedIdx );
+                                  const newBlocks = [...blocks]
+                                  newBlocks[index].content = newImage;
+                                  setBlocks(newBlocks);
+                                 }} 
+                                className="cursor-pointer p-2 bg-red-900/20 text-red-500 rounded-full hover:bg-red-900/40 border border-red-500/20 transition-all"
+                                title="Delete item"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+
                             <button onClick={() => prevImage(listImage.length)} className="z-20 absolute left-2 top-1/2 -translate-y-1/2 p-2 text-white hover:bg-white/10 rounded-full transition-colors">
                               <ChevronLeft size={32} />
                             </button>
@@ -251,14 +267,40 @@ export default function Post() {
 
                 return(
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-8 bg-black">
-                    {listOfItem.map((item) => (
+                    
+                    {listOfItem.map((item,indexofItem) => (
                       <div 
                         key={item.name} 
                         className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-500 transition-all duration-300"
                       >
                         {/* Glow effect on hover */}
                         <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
-        
+                        
+                        <div className="absolute top-2 right-2 flex gap-2 z-10">
+                             {/* EDIT BUTTON */}
+                              <button 
+                                onClick={() => setChangeImage({indexBLock: index, indexImage: indexofItem})} 
+                                className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-all" 
+                                title="Edit item"
+                              >
+                                <Pencil size={14} />
+                              </button>
+
+                              {listOfItem.length > 1 && ( 
+                                <>
+                                  {/* DELETE BUTTON */}
+                                  <button 
+                                    onClick={() => { /* your delete logic */ }} 
+                                    className="cursor-pointer p-2 bg-red-900/20 text-red-500 rounded-full hover:bg-red-900/40 border border-red-500/20 transition-all"
+                                    title="Delete item"
+                                  >
+                                    <Trash2 size={14} />
+                                    </button>
+                                </>
+                              )}
+                        </div>
+
+
                         <div className="mb-4">
                           <CldImage
                             src={item.icon.link}
@@ -270,9 +312,15 @@ export default function Post() {
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                           />
                         </div>
-                        <h3 className="text-zinc-200 text-sm font-medium mt-1">
-                          {item.name}
-                        </h3>
+                        {/* Text Inputs */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Name</label>
+                          <input 
+                            value={item.name} 
+                            className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                            placeholder="e.g. Something" 
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -285,14 +333,37 @@ export default function Post() {
 
                 return(
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {listOfLink.map((item) => (
-                      <a 
-                        key={item.name}
-                        href={item.link ? item.link : ""}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all h-full"
+                    
+                    {listOfLink.map((item,indexofItem) => (
+                      <div
+                        key={indexofItem}
+                        className="group relative flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all h-full"
                       >
+                        <div className="absolute top-2 right-2 flex gap-2 z-10">
+                             {/* EDIT BUTTON */}
+                              <button 
+                                onClick={() => setChangeImage({indexBLock: index, indexImage: indexofItem})} 
+                                className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-all" 
+                                title="Edit item"
+                              >
+                                <Pencil size={14} />
+                              </button>
+
+                              
+                              {listOfLink.length > 1 &&(
+                                <>
+                                  {/* DELETE BUTTON */}
+                                  <button 
+                                    onClick={() => { /* your delete logic */ }} 
+                                    className="cursor-pointer p-2 bg-red-900/20 text-red-500 rounded-full hover:bg-red-900/40 border border-red-500/20 transition-all"
+                                    title="Delete item"
+                                  >
+                                    <Trash2 size={14} />
+                                    </button>
+                                </>
+                              )}
+                        </div>
+
                         <div className="relative flex justify-center  w-full mb-4 overflow-hidden rounded-xl bg-white/5">
                           <CldImage
                             src={item.icon.link}
@@ -306,14 +377,36 @@ export default function Post() {
                         </div>
         
                         <div className="mt-auto flex justify-between items-start">
-                          <div>
-                            <h4 className="text-zinc-200 font-medium">{item.name}</h4>
+                          {/* Text Inputs */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Name</label>
+                            <input 
+                              value={item.name} 
+                              onChange={(e) => {
+                                const newName = e.target.value;
+  
+                                setBlocks(prevBlocks => 
+                                  prevBlocks.map((block, i) => 
+                                    i === index ? { ...block,  } : block
+                                  )
+                                );
+                              }}
+                              className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                              placeholder="e.g. Something" 
+                            />
                           </div>
-                          <div className="p-2 bg-orange-500/10 rounded-lg">
-                            <ShoppingBag size={18} className="text-orange-500" />
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Link</label>
+                            <textarea
+                              rows={2} 
+                              onChange={(e)=>{}}
+                              value={item.link}
+                              className="resize-none w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                              placeholder="e.g. https://......" 
+                            />
                           </div>
                         </div>
-                      </a>
+                      </div>
                     ))}
                   </div>
                 );  
@@ -352,7 +445,7 @@ export default function Post() {
         )}
       </div>
 
-      {/* CUSTOM SUCCESS MODAL */}
+      
       {mediaImage && (
         <div className="fixed w-full inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-zinc-900 border border-zinc-800  rounded-3xl max-w-4xl max-h-[85vh] shadow-2xl scale-in-center">      
@@ -366,6 +459,11 @@ export default function Post() {
             <LoadImage onClose={() => setMediaImage(false)} onSave={addImages} isItem={false}/>
           </div>
         </div>
+      )}
+
+
+      {ChangeImage &&(
+        <ChangeImageComponent indexBlock={ChangeImage.indexBLock} indexImage={ChangeImage.indexImage} onClose={() => setChangeImage(null)} setBlocks={setBlocks} blocks={blocks} />
       )}
 
       {/* CUSTOM SUCCESS MODAL */}

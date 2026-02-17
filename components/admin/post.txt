@@ -1,0 +1,73 @@
+link and list style: {block.type === "list" && (() => {
+                
+                const listOfItem = block.content as Item[];
+
+                return(
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-8 bg-black">
+                    {listOfItem.map((item) => (
+                      <div 
+                        key={item.name} 
+                        className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-500 transition-all duration-300"
+                      >
+                        {/* Glow effect on hover */}
+                        <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity" />
+        
+                        <div className="mb-4">
+                          <CldImage
+                            src={item.icon.link}
+                            alt={item.name}
+                            width={200}
+                            height={200}
+                            crop="fit"
+                            className="object-cover h-auto w-auto "
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          />
+                        </div>
+                        <h3 className="text-zinc-200 text-sm font-medium mt-1">
+                          {item.name}
+                        </h3>
+                      </div>
+                    ))}
+                  </div>
+                );  
+              })()}
+
+              {block.type === "link" && (() => {
+
+                const listOfLink = block.content as Item[];
+
+                return(
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {listOfLink.map((item) => (
+                      <a 
+                        key={item.name}
+                        href={item.link ? item.link : ""}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex flex-col p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:bg-zinc-800/50 transition-all h-full"
+                      >
+                        <div className="relative flex justify-center  w-full mb-4 overflow-hidden rounded-xl bg-white/5">
+                          <CldImage
+                            src={item.icon.link}
+                            alt={item.name}
+                            width={400}
+                            height={400}
+                            crop="fit"
+                            className="object-cover h-auto w-auto "
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          />
+                        </div>
+        
+                        <div className="mt-auto flex justify-between items-start">
+                          <div>
+                            <h4 className="text-zinc-200 font-medium">{item.name}</h4>
+                          </div>
+                          <div className="p-2 bg-orange-500/10 rounded-lg">
+                            <ShoppingBag size={18} className="text-orange-500" />
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                );  
+              })() }

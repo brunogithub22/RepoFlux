@@ -47,3 +47,8 @@ export interface GalleryImage {
   link: string;
   public_id: string;
 }
+
+export interface ImageChange{
+  indexBLock: number;
+  indexImage: number;
+}

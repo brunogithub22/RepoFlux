@@ -63,7 +63,7 @@ export default function UploadContent() {
     options={{
       folder: "RepoFlux",
       resourceType: "auto",
-      multiple: false,
+      multiple: true,
       sources: ["local", "url"],
       clientAllowedFormats: ["jpg", "jpeg", "png", "webp", "gif"],
     }}
