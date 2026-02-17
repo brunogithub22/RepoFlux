@@ -126,10 +126,8 @@ export default function UploadContent() {
                 )
               )}
               
-              <h3 className="text-xl font-bold text-white mb-2">Upload Complete!</h3>
-              <p className="text-zinc-400 mb-6">
-                {message}
-              </p>
+              <h3 className="text-xl font-bold text-white mb-2">{message}</h3>
+              
               <button
                 onClick={() => setShowSuccess(false)}
                 className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"

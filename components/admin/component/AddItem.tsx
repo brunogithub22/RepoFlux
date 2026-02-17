@@ -92,6 +92,7 @@ export default function ShowItem({isLink ,onClose, onSave }: {isLink: boolean, o
           <div className="space-y-2">
             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Name</label>
             <input 
+              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
@@ -103,6 +104,7 @@ export default function ShowItem({isLink ,onClose, onSave }: {isLink: boolean, o
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Link</label>
               <textarea
+                id="link"
                 rows={2} 
                 value={link}
                 onChange={(e) => setLink(e.target.value)}

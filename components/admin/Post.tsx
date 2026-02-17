@@ -5,7 +5,13 @@ import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
 import LoadList from "@/components/admin/component/AddList";
-import { Plus, Type, ImageIcon, Image,Video,Trash2,ChevronLeft,ChevronRight,ShoppingBag, LinkIcon, ShoppingCart, List,Pencil} from "lucide-react";
+import { 
+         Plus, Type, ImageIcon, Image,
+         Video,Trash2,ChevronLeft,ChevronRight,
+         ShieldXIcon, LinkIcon, ShoppingCart, 
+         List,Pencil,CheckCircle2,CircleAlert,
+         Github,ExternalLink,Link,Code2,Check,Copy
+        } from "lucide-react";
 import { CldImage } from 'next-cloudinary';
 import ChangeImageComponent from "./component/ChangeImage";
 
@@ -21,7 +27,10 @@ export default function Post() {
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
   const [mediaImage, setMediaImage] = useState(false);
   const [ChangeImage,setChangeImage] = useState<ImageChange | null>(null);
-
+  const [showResult,setShowResult] = useState(false);
+  const [result,setResult] = useState<"idle" | "warning" | "error" | "success">("idle");
+  const [message,setMessage] = useState<string>("");
+  const [copied, setCopied] = useState(false);
   
   // Add a Text Block
   const addTextBlock = async () => {
@@ -37,6 +46,10 @@ export default function Post() {
     setBlocks([...blocks, { type: "youtube", content: contents}]);
   }
 
+  const addgithub = async ()=>{
+    setBlocks([...blocks, { type: "github", content: ""}]);
+  }
+
   const addImages = async (Item: Gallery[]) =>{
     setBlocks([...blocks,{type:"image",content: Item}])
   }
@@ -47,6 +60,10 @@ export default function Post() {
 
   const addList = async (Item: Item[]) =>{
     setBlocks([...blocks,{type:"list",content: Item}])
+  }
+
+  const addCode = async () =>{
+    setBlocks([...blocks,{type:"code",content: ""}])
   }
 
   const nextImage = async (length: number) => {
@@ -64,8 +81,60 @@ export default function Post() {
     });
   };
 
+  const handleCopy = (codeToCopy: string) => {
+    navigator.clipboard.writeText(codeToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // Reset icon after 2 seconds
+  };
+
   const publish = async () =>{
-    const response = await fetch('/api/post', { // Use the path to your route.ts
+
+    const check = {link: true, list: true,textBlock: true, textArea: true}
+    let array,text:string;
+
+    blocks.map((block)=>{
+      switch(block.type){
+        case "textBlock":
+          text = block.content as string;
+          if(!text.trim()){
+            check.textBlock = false;
+          }
+          break;
+        case "textAreaBlock":
+          text = block.content as string;
+          if(!text.trim()){
+            check.textBlock = false;
+          }
+          break;
+        case "link":
+          array = block.content as Item[]
+          array.map((item,index)=>{
+            if(!item.link?.trim() && !item.name.trim()){
+              check.link = false;
+            }
+          })  
+          break;
+        case "list":
+          array = block.content as Item[]
+          array.map((item,index)=>{
+            if(!item.name.trim()){
+              check.list = false;
+            }
+          })
+          break;
+      }
+    })
+
+    if(Object.values(check).every(value => value === true))
+    {
+      setResult("success");
+    }else{
+      setResult("error");
+      setMessage("Some text is missing");
+    }
+
+    if(result === "success"){
+      const response = await fetch('/api/post', { // Use the path to your route.ts
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,20 +144,24 @@ export default function Post() {
         }),
       });
   
-      const result = await response.json();
-    
+      const res = await response.json();
+      
       if (!response.ok) {
-        throw new Error(result.error || "Failed to add language");
+        throw new Error(res.error || "Failed to add language");
       }
 
-      console.log("Success:", result);
+      console.log("Success:", res);
+      setMessage("Post created with success!!");
+    }
 
+    setBlocks([])
+    setShowResult(true);
   };
 
   return (
-    <div onClick={() => {if(open){ setOpen(false);}}} className=" mx-auto p-10 space-y-10 bg-zinc-950 text-zinc-200 min-h-screen font-sans">
+    <div onClick={() => {if(open){ setOpen(false);}}} className=" mx-auto p-10 space-y-5 bg-zinc-950 text-zinc-200 min-h-screen font-sans">
       {/* HEADER */}
-      <header className="flex justify-between items-end border-b border-zinc-800 pb-6">
+      <header className="flex justify-between items-end border-b border-zinc-800 pb-2">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight" >{title=="" ? "Project Title": title}</h1>
           <p className="text-zinc-500 text-sm">{description == "" ? "Describe the high-level process..." : description}.</p>
@@ -99,10 +172,11 @@ export default function Post() {
       </header>
 
       {/* SCROLLABLE CONTENT AREA */}
-      <div className="overflow-y-auto max-h-[65vh] pr-4 space-y-5 custom-scrollbar">
+      <div className="overflow-y-auto max-h-[65vh] pr-4 space-y-3 custom-scrollbar">
         {/* METADATA SECTION */}
         <section className="space-y-4">
           <input
+            id="title"
             type="text"
             placeholder="Project Title"
             onChange={(e)=>setTitle(e.target.value)}
@@ -117,6 +191,7 @@ export default function Post() {
 
         </section>
 
+
         {/* DYNAMIC BLOCKS */}
         <div className="space-y-2">
           {blocks.map((block, index) => (
@@ -129,6 +204,7 @@ export default function Post() {
 
               {block.type === "textBlock" && (
                 <input
+                  key={index}
                   className="w-full bg-transparent outline-none text-zinc-300 leading-relaxed resize-none"
                   placeholder="Enter text content..."
                   value={block.content as string}
@@ -138,6 +214,133 @@ export default function Post() {
                     setBlocks(newBlocks);
                   }}
                 />
+              )}
+
+              {block.type === "github" &&(
+                <div className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl hover:border-blue-500/50 transition-all duration-300 overflow-hidden">
+                  {/* Background decorative gradient */}
+                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full group-hover:bg-blue-500/20 transition-colors" />
+                  <div className="relative flex flex-col md:flex-row items-center gap-6">
+                    {/* Icon Wrapper */}
+                    <div className="p-4 bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl group-hover:scale-110 transition-transform duration-500">
+                      <Github size={32} className="text-white" />
+                    </div>
+
+                    <div className="flex-1 space-y-3 text-center md:text-left">
+                      {/* TITLE INPUT */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
+                          Section Title
+                        </label>
+                        <input 
+                          key={index}
+                          type="text"
+                          className="w-full bg-zinc-950/50 border border-zinc-800 p-2 rounded-xl text-white font-semibold text-lg tracking-tight outline-none focus:border-blue-500/50 transition-all" 
+                          placeholder="Project Repository"
+                        />
+                      </div>
+
+                      {/* DESCRIPTION TEXTAREA */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
+                          Description
+                        </label>
+                        <textarea
+                          key={index} 
+                          rows={2}
+                          className="w-full bg-zinc-950/50 border border-zinc-800 p-3 rounded-xl text-zinc-400 text-sm outline-none focus:border-blue-500/50 transition-all resize-none leading-relaxed" 
+                          placeholder="View the full source code..."
+                        />
+                      </div>
+                    </div>
+                    {/* Action Link */}
+                    <div className="flex items-center gap-3">
+                      <a 
+         
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold rounded-full hover:bg-zinc-200 transition-all active:scale-95"
+                      >
+                        View Code
+                        <ExternalLink size={14} />
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Input Field for Editing (Admin View) */}
+                  <div className="mt-6 pt-6 border-t border-zinc-800/50">
+                    <div className="relative">
+                      <Link size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+                      <input 
+                         key={index}
+                         type="text"
+                         className="w-full bg-zinc-950 border border-zinc-800 pl-12 pr-4 py-3 rounded-2xl text-zinc-300 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                         placeholder="https://github.com/username/repo"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {block.type === "code" && (
+                <section className="mt-12 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Code2 size={20} className="text-blue-500" />
+                    <h3 className="text-xl font-bold text-white">Technical Deep Dive</h3>
+                  </div>
+
+                  <div className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden shadow-2xl">
+                    {/* Mac-style Window Header */}
+                    <div className="bg-zinc-900/50 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40" />
+                        <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40" />
+                        <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40" />
+                      </div>
+
+                      {/* VISIBLE INPUT BOX */}
+                      <div className="relative flex-1 flex justify-center">
+                        <input 
+                          spellCheck={false}
+                          className={`
+                            bg-zinc-950/50 border border-zinc-800 rounded-lg px-3 py-1
+                            text-[10px] font-mono text-zinc-400 uppercase tracking-widest text-center
+                            hover:border-zinc-700 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+                            outline-none transition-all w-full max-w-[240px]
+                          `}
+                          placeholder="FileName..."
+                        />
+                      </div>
+                      
+                      {/* COPY BUTTON */}
+                      <button 
+                        className="flex items-center gap-2 px-2 py-1 rounded-md bg-zinc-800/50 border border-zinc-700 hover:bg-zinc-700 hover:text-white text-zinc-400 transition-all active:scale-95 group"
+                        title="Copy code"
+                      >
+                        {copied ? (
+                          <>
+                            <Check size={12} className="text-emerald-500" />
+                            <span className="text-[10px] font-bold text-emerald-500">Copied!</span>
+                          </> 
+                        ) : (
+                          <>
+                            <Copy size={12} className="group-hover:text-blue-400" />
+                            <span className="text-[10px] font-bold">Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* The Code Area (Admin Version) */}
+                    <div className="p-6 overflow-x-auto font-mono text-sm leading-relaxed bg-zinc-950/50">
+                      <textarea
+                        spellCheck={false}
+                        className="w-full h-[300px] bg-transparent text-zinc-300 outline-none resize-none font-mono leading-relaxed selection:bg-blue-500/30"
+                        placeholder="// Paste your expert code here..."
+                      />
+                    </div>
+                  </div>
+                </section>
               )}
 
               {block.type === "textAreaBlock" && (
@@ -290,7 +493,12 @@ export default function Post() {
                                 <>
                                   {/* DELETE BUTTON */}
                                   <button 
-                                    onClick={() => { /* your delete logic */ }} 
+                                    onClick={() => { 
+                                      const newlink = listOfItem.filter((_,i) => i !== indexofItem );
+                                      const newBlocks = [...blocks]
+                                      newBlocks[index].content = newlink;
+                                      setBlocks(newBlocks);
+                                    }} 
                                     className="cursor-pointer p-2 bg-red-900/20 text-red-500 rounded-full hover:bg-red-900/40 border border-red-500/20 transition-all"
                                     title="Delete item"
                                   >
@@ -316,7 +524,14 @@ export default function Post() {
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Name</label>
                           <input 
+                            key={index}
                             value={item.name} 
+                            onChange={(e)=>{
+                              const newBlocks = [...blocks];
+                              const targetImage = newBlocks[index].content[indexofItem] as Item;
+                              targetImage.name = e.target.value;
+                              setBlocks(newBlocks);
+                            }}
                             className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                             placeholder="e.g. Something" 
                           />
@@ -354,7 +569,12 @@ export default function Post() {
                                 <>
                                   {/* DELETE BUTTON */}
                                   <button 
-                                    onClick={() => { /* your delete logic */ }} 
+                                    onClick={() => { 
+                                      const newlink = listOfLink.filter((_,i) => i !== indexofItem );
+                                      const newBlocks = [...blocks]
+                                      newBlocks[index].content = newlink;
+                                      setBlocks(newBlocks);
+                                     }} 
                                     className="cursor-pointer p-2 bg-red-900/20 text-red-500 rounded-full hover:bg-red-900/40 border border-red-500/20 transition-all"
                                     title="Delete item"
                                   >
@@ -381,15 +601,13 @@ export default function Post() {
                           <div className="space-y-2">
                             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Name</label>
                             <input 
+                              key={index}
                               value={item.name} 
                               onChange={(e) => {
-                                const newName = e.target.value;
-  
-                                setBlocks(prevBlocks => 
-                                  prevBlocks.map((block, i) => 
-                                    i === index ? { ...block,  } : block
-                                  )
-                                );
+                                const newBlocks = [...blocks];
+                                const targetImage = newBlocks[index].content[indexofItem] as Item;
+                                targetImage.name = e.target.value;
+                                setBlocks(newBlocks);
                               }}
                               className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                               placeholder="e.g. Something" 
@@ -399,7 +617,12 @@ export default function Post() {
                             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Item Link</label>
                             <textarea
                               rows={2} 
-                              onChange={(e)=>{}}
+                              onChange={(e)=>{
+                                const newBlocks = [...blocks];
+                                const targetImage = newBlocks[index].content[indexofItem] as Item;
+                                targetImage.link = e.target.value;
+                                setBlocks(newBlocks);
+                              }}
                               value={item.link}
                               className="resize-none w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                               placeholder="e.g. https://......" 
@@ -418,7 +641,7 @@ export default function Post() {
       </div>
 
       {/* FLOATING TOOLBAR */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center pt-1.5">
+      <div className="fixed bottom-8 left-1/2 ml-10 -translate-x-1/2 flex flex-col items-center z-50">
         <button 
           onClick={() => setOpen(!open)} 
           className={`
@@ -433,19 +656,20 @@ export default function Post() {
         {open && (
           <div className="absolute bottom-full mb-4 w-56 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in duration-200">
             <p className="text-[10px] font-bold text-zinc-500 px-3 py-2 uppercase tracking-widest">Components</p>
-            <div className="grid grid-cols-1 gap-1">
+            <div className="grid grid-cols-1 gap-1 overflow-y-auto max-h-[200px] custom-scrollbar">
               <MenuButton icon={<Type size={16}/>} label="Text Block" onClick={() => {addTextBlock(); setOpen(false);}} />
               <MenuButton icon={<Type size={16}/>} label="Text Area Block" onClick={() => {addTextAreaBlock(); setOpen(false);}} />              
               <MenuButton icon={<ImageIcon size={16}/>} label="Cloudinary Media" onClick={() => {setMediaImage(true); setOpen(false);}} />
               <MenuButton icon={<Video size={16}/>} label="YouTube Video" onClick={() => {setMediaVideo(true); setOpen(false);}} />
               <MenuButton icon={<List size={16}/>} label="List Items" onClick={() => {setMediaList(true); setOpen(false);}} />
               <MenuButton icon={<ShoppingCart size={16}/>} label="Link Items" onClick={() => {setMediaLink(true); setOpen(false);}} />
+              <MenuButton icon={<Github size={16}/>} label="Add Repository" onClick={() => {addgithub(); setOpen(false);}} />
+              <MenuButton icon={<Code2 size={16}/>} label="Add Code" onClick={() => {addCode(); setOpen(false);}} />
             </div>
           </div>
         )}
       </div>
 
-      
       {mediaImage && (
         <div className="fixed w-full inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-zinc-900 border border-zinc-800  rounded-3xl max-w-4xl max-h-[85vh] shadow-2xl scale-in-center">      
@@ -460,7 +684,6 @@ export default function Post() {
           </div>
         </div>
       )}
-
 
       {ChangeImage &&(
         <ChangeImageComponent indexBlock={ChangeImage.indexBLock} indexImage={ChangeImage.indexImage} onClose={() => setChangeImage(null)} setBlocks={setBlocks} blocks={blocks} />
@@ -520,6 +743,40 @@ export default function Post() {
           </div>
         );
       })() }
+
+      {showResult && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+            <div className="flex flex-col items-center text-center">
+
+              {result === "success"  ? (
+                <div className="bg-green-500/10 p-4 rounded-full mb-4">
+                  <CheckCircle2 size={48} className="text-green-500" />
+                </div>
+              ):(
+                result === "warning" ?(
+                  <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
+                    <CircleAlert size={48} className="text-yellow-500" />
+                  </div>
+                ):(
+                  <div className="bg-red-500/10 p-4 rounded-full mb-4">
+                    <ShieldXIcon size={48} className="text-red-500" />
+                  </div>
+                )
+              )}
+              
+              <h3 className="text-xl font-bold text-white mb-2">{message}</h3>
+              
+              <button
+                onClick={() => setShowResult(false)}
+                className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -529,7 +786,7 @@ function MenuButton({ icon, label, onClick }: { icon: any, label: string, onClic
   return (
     <button 
       onClick={onClick}
-      className="cursor-pointer flex items-center gap-3 w-full px-3 py-2.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition"
+      className="relative z-50 cursor-pointer flex items-center gap-3 w-full px-3 py-2.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition"
     >
       <span className="text-zinc-600">{icon}</span>
       {label}

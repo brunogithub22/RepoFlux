@@ -1,4 +1,6 @@
-link and list style: {block.type === "list" && (() => {
+link and list style: 
+
+{block.type === "list" && (() => {
                 
                 const listOfItem = block.content as Item[];
 
@@ -71,3 +73,129 @@ link and list style: {block.type === "list" && (() => {
                   </div>
                 );  
               })() }
+
+
+              Comment: 
+
+
+              <section className="max-w-2xl mx-auto mt-12 p-6 bg-zinc-900/30 border border-zinc-800 rounded-3xl">
+  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+    <MessageSquare size={18} className="text-blue-500" />
+    Leave a Comment
+  </h3>
+
+  <div className="relative group">
+    <textarea
+      value={comment}
+      onChange={(e) => setComment(e.target.value)}
+      placeholder="What's on your mind?"
+      className="w-full min-h-[120px] bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+    />
+    
+    {/* Character Counter */}
+    <div className="absolute bottom-3 right-3 text-[10px] font-mono text-zinc-600">
+      {comment.length} / 500
+    </div>
+  </div>
+
+  <div className="mt-4 flex justify-between items-center">
+    <p className="text-xs text-zinc-500">
+      Be respectful and follow our community guidelines.
+    </p>
+    
+    <button
+      onClick={handleSubmit}
+      disabled={!comment.trim()}
+      className={`
+        px-6 py-2 rounded-full font-semibold text-sm transition-all
+        ${comment.trim() 
+          ? "bg-blue-600 text-white hover:bg-blue-500 cursor-pointer shadow-lg shadow-blue-500/10" 
+          : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}
+      `}
+    >
+      Post Comment
+    </button>
+  </div>
+</section>
+
+
+Code and Github:              {block.type === "github" &&(
+                <div className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl hover:border-blue-500/50 transition-all duration-300 overflow-hidden">
+                  {/* Background decorative gradient */}
+                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full group-hover:bg-blue-500/20 transition-colors" />
+                  <div className="relative flex flex-col md:flex-row items-center gap-6">
+                    {/* Icon Wrapper */}
+                    <div className="p-4 bg-zinc-950 rounded-2xl border border-zinc-800 shadow-xl group-hover:scale-110 transition-transform duration-500">
+                      <Github size={32} className="text-white" />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 space-y-1 text-center md:text-left">
+                      <h4 className="text-white font-semibold text-lg tracking-tight">Project Repository</h4>
+                      <p className="text-zinc-500 text-sm">View the full source code and documentation on GitHub.</p>
+                    </div>
+ 
+                    {/* Action Link */}
+                    <div className="flex items-center gap-3">
+                      <a 
+         
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold rounded-full hover:bg-zinc-200 transition-all active:scale-95"
+                      >
+                        View Code
+                        <ExternalLink size={14} />
+                      </a>
+                    </div>
+                  </div>
+
+                
+                </div>
+              )}
+
+              {block.type === "code" && (
+                <section className="mt-12 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Code2 size={20} className="text-blue-500" />
+                    <h3 className="text-xl font-bold text-white">Technical Deep Dive</h3>
+                  </div>
+
+                  <div className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden shadow-2xl">
+                    {/* Mac-style Window Header */}
+                    <div className="bg-zinc-900/50 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+                      <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40" />
+                        <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40" />
+                        <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40" />
+                      </div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">useProjectLogic.ts</span>
+                      {/* COPY BUTTON */}
+                      <button 
+                        className="flex items-center gap-2 px-2 py-1 rounded-md bg-zinc-800/50 border border-zinc-700 hover:bg-zinc-700 hover:text-white text-zinc-400 transition-all active:scale-95 group"
+                        title="Copy code"
+                      >
+                        {copied ? (
+                          <>
+                            <Check size={12} className="text-emerald-500" />
+                            <span className="text-[10px] font-bold text-emerald-500">Copied!</span>
+                          </> 
+                        ) : (
+                          <>
+                            <Copy size={12} className="group-hover:text-blue-400" />
+                            <span className="text-[10px] font-bold">Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* The Code Area */}
+                    <div className="p-6 overflow-x-auto font-mono text-sm leading-relaxed">
+                      <pre className="text-zinc-300">
+                        <code className="language-typescript">
+                          {``}
+                        </code>
+                      </pre>
+                    </div>
+                  </div>
+                </section>
+              )}
