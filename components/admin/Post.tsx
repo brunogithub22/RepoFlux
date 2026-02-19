@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import {Item,Block,Gallery,ImageChange} from "@/components/intefaces"
+import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo} from "@/components/intefaces"
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
@@ -47,7 +47,7 @@ export default function Post() {
   }
 
   const addgithub = async ()=>{
-    setBlocks([...blocks, { type: "github", content: ""}]);
+    setBlocks([...blocks, { type: "github", content: {link: "",description: "",text: ""} as GitHubInfo}]);
   }
 
   const addImages = async (Item: Gallery[]) =>{
@@ -128,12 +128,6 @@ export default function Post() {
     if(Object.values(check).every(value => value === true))
     {
       setResult("success");
-    }else{
-      setResult("error");
-      setMessage("Some text is missing");
-    }
-
-    if(result === "success"){
       const response = await fetch('/api/post', { // Use the path to your route.ts
         method: 'POST',
         headers: {
@@ -152,6 +146,9 @@ export default function Post() {
 
       console.log("Success:", res);
       setMessage("Post created with success!!");
+    }else{
+      setResult("error");
+      setMessage("Some text is missing");
     }
 
     setBlocks([])
@@ -232,7 +229,13 @@ export default function Post() {
                         <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">
                           Section Title
                         </label>
-                        <input 
+                        <input
+                          value={(block.content as GitHubInfo).text}
+                          onChange={(e) => {
+                            const newBlocks = [...blocks];
+                            (newBlocks[index].content as GitHubInfo).text = e.target.value;
+                            setBlocks(newBlocks);
+                          }} 
                           key={index}
                           type="text"
                           className="w-full bg-zinc-950/50 border border-zinc-800 p-2 rounded-xl text-white font-semibold text-lg tracking-tight outline-none focus:border-blue-500/50 transition-all" 
@@ -246,6 +249,12 @@ export default function Post() {
                           Description
                         </label>
                         <textarea
+                          value={(block.content as GitHubInfo).description}
+                          onChange={(e) => {
+                            const newBlocks = [...blocks];
+                            (newBlocks[index].content as GitHubInfo).description = e.target.value;
+                            setBlocks(newBlocks);
+                          }} 
                           key={index} 
                           rows={2}
                           className="w-full bg-zinc-950/50 border border-zinc-800 p-3 rounded-xl text-zinc-400 text-sm outline-none focus:border-blue-500/50 transition-all resize-none leading-relaxed" 
@@ -256,7 +265,7 @@ export default function Post() {
                     {/* Action Link */}
                     <div className="flex items-center gap-3">
                       <a 
-         
+                        href={(block.content as GitHubInfo).link}
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="cursor-pointer flex items-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-bold rounded-full hover:bg-zinc-200 transition-all active:scale-95"
@@ -272,10 +281,16 @@ export default function Post() {
                     <div className="relative">
                       <Link size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
                       <input 
-                         key={index}
-                         type="text"
-                         className="w-full bg-zinc-950 border border-zinc-800 pl-12 pr-4 py-3 rounded-2xl text-zinc-300 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                         placeholder="https://github.com/username/repo"
+                        value={(block.content as GitHubInfo).link}
+                        onChange={(e) => {
+                            const newBlocks = [...blocks];
+                            (newBlocks[index].content as GitHubInfo).link = e.target.value;
+                            setBlocks(newBlocks);
+                          }} 
+                        key={index}
+                        type="text"
+                        className="w-full bg-zinc-950 border border-zinc-800 pl-12 pr-4 py-3 rounded-2xl text-zinc-300 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                        placeholder="https://github.com/username/repo"
                       />
                     </div>
                   </div>
@@ -301,6 +316,12 @@ export default function Post() {
                       {/* VISIBLE INPUT BOX */}
                       <div className="relative flex-1 flex justify-center">
                         <input 
+                          value={(block.content as CodeInfo).fileName}
+                          onChange={(e) => {
+                            const newBlocks = [...blocks];
+                            (newBlocks[index].content as CodeInfo).fileName = e.target.value;
+                            setBlocks(newBlocks);
+                          }} 
                           spellCheck={false}
                           className={`
                             bg-zinc-950/50 border border-zinc-800 rounded-lg px-3 py-1
@@ -314,6 +335,7 @@ export default function Post() {
                       
                       {/* COPY BUTTON */}
                       <button 
+                        onClick={() => handleCopy((block.content as CodeInfo).code)}
                         className="flex items-center gap-2 px-2 py-1 rounded-md bg-zinc-800/50 border border-zinc-700 hover:bg-zinc-700 hover:text-white text-zinc-400 transition-all active:scale-95 group"
                         title="Copy code"
                       >
@@ -334,6 +356,10 @@ export default function Post() {
                     {/* The Code Area (Admin Version) */}
                     <div className="p-6 overflow-x-auto font-mono text-sm leading-relaxed bg-zinc-950/50">
                       <textarea
+                        value={(block.content as CodeInfo).code}
+                        onChange={(e) => {
+                          
+                        }} 
                         spellCheck={false}
                         className="w-full h-[300px] bg-transparent text-zinc-300 outline-none resize-none font-mono leading-relaxed selection:bg-blue-500/30"
                         placeholder="// Paste your expert code here..."
@@ -370,10 +396,18 @@ export default function Post() {
                       placeholder="Write a caption for this video..."
                       rows={2}
                       onChange={(e)=>{
-                        const newBlocks = [...blocks];
-                        const targetImage = newBlocks[index].content[0] as Gallery;
-                        targetImage.text = e.target.value;
-                        setBlocks(newBlocks);
+                        setBlocks(prev => prev.map((block, i) => {
+                          if (i !== index) return block; // Not the block we want, return as is
+                          const galleryContent = block.content as Gallery[];
+                          return {
+                           ...block,
+                           content: galleryContent.map((item, j) => {
+                            if (j !== 0) return item; // Not the first image, return as is
+  
+                              return { ...item, text: e.target.value };
+                            })
+                          };
+                        }));
                       }}
                     />
                   </div>
@@ -448,14 +482,14 @@ export default function Post() {
                         className="w-full bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
                         placeholder="Write a caption for this image..."
                         value={
-                          typeof blocks[index].content[selectedIdx] === 'object'  
-                            ? (blocks[index].content[selectedIdx] as Gallery).text || "" 
+                          typeof (blocks[index].content as Gallery[])[selectedIdx] === 'object'  
+                            ? ((blocks[index].content as Gallery[])[selectedIdx]).text || "" 
                             : ""
                         }
                         rows={2}
                         onChange={(e) => {
                           const newBlocks = [...blocks];
-                          const targetImage = newBlocks[index].content[selectedIdx] as Gallery;
+                          const targetImage = (blocks[index].content as Gallery[])[selectedIdx];
                           targetImage.text = e.target.value;
                           setBlocks(newBlocks);
                         }}
@@ -528,7 +562,7 @@ export default function Post() {
                             value={item.name} 
                             onChange={(e)=>{
                               const newBlocks = [...blocks];
-                              const targetImage = newBlocks[index].content[indexofItem] as Item;
+                              const targetImage = (newBlocks[index].content as Item[])[indexofItem];
                               targetImage.name = e.target.value;
                               setBlocks(newBlocks);
                             }}
@@ -605,7 +639,7 @@ export default function Post() {
                               value={item.name} 
                               onChange={(e) => {
                                 const newBlocks = [...blocks];
-                                const targetImage = newBlocks[index].content[indexofItem] as Item;
+                                const targetImage = (newBlocks[index].content as Item[])[indexofItem];
                                 targetImage.name = e.target.value;
                                 setBlocks(newBlocks);
                               }}
@@ -619,7 +653,7 @@ export default function Post() {
                               rows={2} 
                               onChange={(e)=>{
                                 const newBlocks = [...blocks];
-                                const targetImage = newBlocks[index].content[indexofItem] as Item;
+                                const targetImage = (newBlocks[index].content as Item[])[indexofItem];
                                 targetImage.link = e.target.value;
                                 setBlocks(newBlocks);
                               }}

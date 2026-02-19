@@ -8,7 +8,7 @@ export interface LinkYoutube{
 
 export interface Block{
   type: string
-  content: Gallery[] | Item[] | string;
+  content: Gallery[] | Item[] | string | GitHubInfo | CodeInfo;
 }
 
 export interface Gallery {
@@ -51,4 +51,15 @@ export interface GalleryImage {
 export interface ImageChange{
   indexBLock: number;
   indexImage: number;
+}
+
+export interface GitHubInfo{
+  link: string;
+  text: string;
+  description: string;
+}
+
+export interface CodeInfo{
+  fileName: string;
+  code: string;
 }
