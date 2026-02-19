@@ -31,6 +31,8 @@ export default function Post() {
   const [result,setResult] = useState<"idle" | "warning" | "error" | "success">("idle");
   const [message,setMessage] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const options = ["Software", "Project"];
+  const [category, setCategory] = useState<string>("empty");
   
   // Add a Text Block
   const addTextBlock = async () => {
@@ -63,7 +65,7 @@ export default function Post() {
   }
 
   const addCode = async () =>{
-    setBlocks([...blocks,{type:"code",content: ""}])
+    setBlocks([...blocks,{type:"code",content: {fileName: "",code: ""} as CodeInfo}])
   }
 
   const nextImage = async (length: number) => {
@@ -125,7 +127,7 @@ export default function Post() {
       }
     })
 
-    if(Object.values(check).every(value => value === true))
+    if(Object.values(check).every(value => value === true) && category !== "empty" && title.trim() && description.trim())
     {
       setResult("success");
       const response = await fetch('/api/post', { // Use the path to your route.ts
@@ -134,6 +136,9 @@ export default function Post() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          title: title,
+          description: description,
+          category: category,
           blog: blocks
         }),
       });
@@ -147,10 +152,16 @@ export default function Post() {
       console.log("Success:", res);
       setMessage("Post created with success!!");
     }else{
+      if(category === "empty"){
+        setMessage("Some text is missing and select the category");
+      }else{
+        setMessage("Some text is missing");
+      }
       setResult("error");
-      setMessage("Some text is missing");
     }
 
+    setTitle("");
+    setDescription("");
     setBlocks([])
     setShowResult(true);
   };
@@ -186,6 +197,32 @@ export default function Post() {
             rows={2}
           />
 
+          <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 w-fit">
+           {options.map((option) => (
+            <label key={option} className="relative cursor-pointer">
+             {/* The actual input is hidden but still works for accessibility */}
+              <input
+               type="radio"
+               name="blockType"
+               value={option}
+               checked={category === option}
+               onChange={(e) => setCategory(e.target.value)}
+               className="sr-only" 
+              />
+        
+              {/* The custom styled "Button" */}
+              <div className={`
+                px-4 py-2 rounded-lg text-xs font-bold transition-all
+                ${category === option 
+                ? "bg-blue-500 text-white shadow-lg" 
+                : "text-zinc-500 hover:text-zinc-300"}
+              `}>
+                 {option}
+              </div>
+            </label>
+            ))}
+          </div>
+
         </section>
 
 
@@ -206,9 +243,13 @@ export default function Post() {
                   placeholder="Enter text content..."
                   value={block.content as string}
                   onChange={(e) => {
-                    const newBlocks = [...blocks];
-                    newBlocks[index].content = e.target.value;
-                    setBlocks(newBlocks);
+                    setBlocks(prev => prev.map((block, i) => {
+                    if (i !== index) return block; // Not the block we want, return as is
+                      return {
+                        ...block,
+                        content: e.target.value
+                      };
+                    }));
                   }}
                 />
               )}
@@ -232,9 +273,15 @@ export default function Post() {
                         <input
                           value={(block.content as GitHubInfo).text}
                           onChange={(e) => {
-                            const newBlocks = [...blocks];
-                            (newBlocks[index].content as GitHubInfo).text = e.target.value;
-                            setBlocks(newBlocks);
+                            setBlocks(prev => prev.map((block, i) => {
+                              if (i !== index) return block; // Not the block we want, return as is
+                                let Content = block.content as GitHubInfo;
+                                Content = {...Content,text: e.target.value}
+                                return {
+                                  ...block,
+                                  content: Content
+                                };
+                            }));
                           }} 
                           key={index}
                           type="text"
@@ -251,9 +298,15 @@ export default function Post() {
                         <textarea
                           value={(block.content as GitHubInfo).description}
                           onChange={(e) => {
-                            const newBlocks = [...blocks];
-                            (newBlocks[index].content as GitHubInfo).description = e.target.value;
-                            setBlocks(newBlocks);
+                            setBlocks(prev => prev.map((block, i) => {
+                              if (i !== index) return block; // Not the block we want, return as is
+                                let Content = block.content as GitHubInfo;
+                                Content = {...Content,description: e.target.value}
+                                return {
+                                 ...block,
+                                 content: Content
+                                };
+                            }));  
                           }} 
                           key={index} 
                           rows={2}
@@ -283,10 +336,17 @@ export default function Post() {
                       <input 
                         value={(block.content as GitHubInfo).link}
                         onChange={(e) => {
-                            const newBlocks = [...blocks];
-                            (newBlocks[index].content as GitHubInfo).link = e.target.value;
-                            setBlocks(newBlocks);
-                          }} 
+                          
+                          setBlocks(prev => prev.map((block, i) => {
+                            if (i !== index) return block; // Not the block we want, return as is
+                            let Content = block.content as GitHubInfo;
+                            Content = {...Content,link: e.target.value}
+                            return {
+                              ...block,
+                              content: Content
+                            };
+                          }));    
+                        }} 
                         key={index}
                         type="text"
                         className="w-full bg-zinc-950 border border-zinc-800 pl-12 pr-4 py-3 rounded-2xl text-zinc-300 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
@@ -318,9 +378,15 @@ export default function Post() {
                         <input 
                           value={(block.content as CodeInfo).fileName}
                           onChange={(e) => {
-                            const newBlocks = [...blocks];
-                            (newBlocks[index].content as CodeInfo).fileName = e.target.value;
-                            setBlocks(newBlocks);
+                            setBlocks(prev => prev.map((block, i) => {
+                              if (i !== index) return block; // Not the block we want, return as is
+                              let Content = block.content as CodeInfo;
+                              Content = {...Content,fileName: e.target.value}
+                              return {
+                                ...block,
+                                content: Content
+                              };
+                            }));  
                           }} 
                           spellCheck={false}
                           className={`
@@ -358,7 +424,15 @@ export default function Post() {
                       <textarea
                         value={(block.content as CodeInfo).code}
                         onChange={(e) => {
-                          
+                          setBlocks(prev => prev.map((block, i) => {
+                            if (i !== index) return block; // Not the block we want, return as is
+                            let Content = block.content as CodeInfo;
+                            Content = {...Content,code: e.target.value}
+                            return {
+                              ...block,
+                              content: Content
+                            };
+                          }));
                         }} 
                         spellCheck={false}
                         className="w-full h-[300px] bg-transparent text-zinc-300 outline-none resize-none font-mono leading-relaxed selection:bg-blue-500/30"
@@ -376,10 +450,15 @@ export default function Post() {
                   rows={5}
                   value={block.content as string}
                   onChange={(e) => {
-                    const newBlocks = [...blocks];
-                    newBlocks[index].content = e.target.value;
-                    setBlocks(newBlocks);
-                  }}
+                    setBlocks(prev => prev.map((block, i) => {
+                      if (i !== index) return block; // Not the block we want, return as is
+                        return {
+                          ...block,
+                          content: e.target.value
+                        };
+                      }));
+                    }
+                  }
                 />
               )}
 
@@ -488,10 +567,18 @@ export default function Post() {
                         }
                         rows={2}
                         onChange={(e) => {
-                          const newBlocks = [...blocks];
-                          const targetImage = (blocks[index].content as Gallery[])[selectedIdx];
-                          targetImage.text = e.target.value;
-                          setBlocks(newBlocks);
+                          setBlocks(prev => prev.map((block, i) => {
+                            if (i !== index) return block; // Not the block we want, return as is
+                              const galleryContent = block.content as Gallery[];
+                              return {
+                                ...block,
+                                content: galleryContent.map((item, j) => {
+                                if (j !== selectedIdx) return item; // Not the first image, return as is
+   
+                                  return { ...item, text: e.target.value };
+                                })
+                            };
+                          }));
                         }}
                       />
                     </div>
@@ -535,13 +622,12 @@ export default function Post() {
                                     }} 
                                     className="cursor-pointer p-2 bg-red-900/20 text-red-500 rounded-full hover:bg-red-900/40 border border-red-500/20 transition-all"
                                     title="Delete item"
-                                  >
-                                    <Trash2 size={14} />
+                                    >
+                                      <Trash2 size={14} />
                                     </button>
                                 </>
                               )}
                         </div>
-
 
                         <div className="mb-4">
                           <CldImage
@@ -561,10 +647,17 @@ export default function Post() {
                             key={index}
                             value={item.name} 
                             onChange={(e)=>{
-                              const newBlocks = [...blocks];
-                              const targetImage = (newBlocks[index].content as Item[])[indexofItem];
-                              targetImage.name = e.target.value;
-                              setBlocks(newBlocks);
+                              setBlocks(prev => prev.map((block, i) => {
+                                if (i !== index) return block; // Not the block we want, return as is
+                                  const galleryContent = block.content as Item[];
+                                  return {
+                                    ...block,
+                                    content: galleryContent.map((item, j) => {
+                                      if (j !== indexofItem) return item; // Not the first image, return as is
+                                      return { ...item, name: e.target.value };
+                                    })
+                                  };
+                              }));
                             }}
                             className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                             placeholder="e.g. Something" 
@@ -638,10 +731,17 @@ export default function Post() {
                               key={index}
                               value={item.name} 
                               onChange={(e) => {
-                                const newBlocks = [...blocks];
-                                const targetImage = (newBlocks[index].content as Item[])[indexofItem];
-                                targetImage.name = e.target.value;
-                                setBlocks(newBlocks);
+                                setBlocks(prev => prev.map((block, i) => {
+                                  if (i !== index) return block; // Not the block we want, return as is
+                                    const galleryContent = block.content as Item[];
+                                    return {
+                                      ...block,
+                                      content: galleryContent.map((item, j) => {
+                                        if (j !== indexofItem) return item; // Not the first image, return as is
+                                        return { ...item, name: e.target.value };
+                                      })
+                                    };
+                                }));
                               }}
                               className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                               placeholder="e.g. Something" 
@@ -652,10 +752,17 @@ export default function Post() {
                             <textarea
                               rows={2} 
                               onChange={(e)=>{
-                                const newBlocks = [...blocks];
-                                const targetImage = (newBlocks[index].content as Item[])[indexofItem];
-                                targetImage.link = e.target.value;
-                                setBlocks(newBlocks);
+                                setBlocks(prev => prev.map((block, i) => {
+                                  if (i !== index) return block; // Not the block we want, return as is
+                                    const galleryContent = block.content as Item[];
+                                    return {
+                                      ...block,
+                                      content: galleryContent.map((item, j) => {
+                                        if (j !== indexofItem) return item; // Not the first image, return as is
+                                        return { ...item, link: e.target.value };
+                                      })
+                                    };
+                                }));
                               }}
                               value={item.link}
                               className="resize-none w-full bg-zinc-950 border border-zinc-800 p-4 rounded-2xl text-white placeholder:text-zinc-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 

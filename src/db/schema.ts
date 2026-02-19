@@ -1,5 +1,4 @@
-import { pgTable, uuid, text, date ,jsonb,foreignKey} from "drizzle-orm/pg-core";
-import { Video } from "lucide-react";
+import { pgTable, uuid, text, date ,foreignKey } from "drizzle-orm/pg-core";
 
 // Posts table - owned by a user
 export const posts = pgTable('posts', {
@@ -7,9 +6,37 @@ export const posts = pgTable('posts', {
   title: text('title'),
   type: text('type'),
   description: text('description'),
-  date: date('date'),
-  content: jsonb('content'),
+  date: date('date')
 });
+
+export const code = pgTable('code', {
+    id: uuid('id').primaryKey().notNull(),
+    filename: text('filename').notNull(),
+    code: text('code').notNull(), 
+    postId: uuid("post_id").notNull(),
+  },
+  (table) => ({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
+  })
+);
+
+export const github = pgTable('github', {
+    id: uuid('id').primaryKey().notNull(),
+    link: text('link').notNull(),
+    description: text('description').notNull(),  
+    postId: uuid("post_id").notNull(),
+    text: text('text').notNull()
+  },
+  (table) => ({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
+  })
+);
 
 // Images table - owned by a user
 export const images = pgTable('images', {
@@ -19,9 +46,17 @@ export const images = pgTable('images', {
   }
 );
 
-export const videos = pgTable('videos', {
+export const link= pgTable('links', {
     id: uuid('id').primaryKey().notNull(),
-    link: text('link'),
+    link: text('link').notNull(),
+    name: text('name').notNull()
+  }
+);
+
+export const youtube_video = pgTable('youtube', {
+    id: uuid('id').primaryKey().notNull(),
+    title: text('title').notNull().unique(),
+    link: text('link').notNull(),
   }
 );
 
@@ -32,6 +67,7 @@ export const postImage = pgTable(
     id: uuid("id").primaryKey().notNull(),
     postId: uuid("post_id").notNull(),
     imageId: uuid("image_id").notNull(),
+    text: text('text').notNull()
   },
   (table) => ({
     postFk: foreignKey({
@@ -48,11 +84,12 @@ export const postImage = pgTable(
 
 /* POST ↔ VIDEO */
 export const postVideo = pgTable(
-  "post_video",
+  "post_youtube",
   {
     id: uuid("id").primaryKey().notNull(),
     postId: uuid("post_id").notNull(),
     videoId: uuid("video_id").notNull(),
+    text: text('text').notNull()
   },
   (table) => ({
     postFk: foreignKey({
@@ -62,7 +99,7 @@ export const postVideo = pgTable(
 
     videoFk: foreignKey({
       columns: [table.videoId],
-      foreignColumns: [videos.id],
+      foreignColumns: [youtube_video.id],
     }).onDelete("cascade"),
   })
 );
@@ -76,7 +113,6 @@ export const languages = pgTable('languages', {
 export const feedback = pgTable('feedback', 
   {
     id: uuid('id').primaryKey().notNull(),
-    name: text('name'),
     feedback: text('feedback'),
     postId: uuid().notNull(),
   },

@@ -20,10 +20,11 @@ export async function getAllRows<T extends PgTable<TableConfig>>(table: T) {
 // Add a language
 export async function addRow<T extends PgTable<TableConfig>>(
   table: T, 
-  values: InferInsertModel<T>
+  values: InferInsertModel<T>,
+  targetColumn?: any
 ) {
   try {
-    await dbAdmin.insert(table).values(values);
+    await dbAdmin.insert(table).values(values).onConflictDoNothing({ target: targetColumn });
     return true;
   } catch (error) {
     console.error("Error inserting row:", error);
