@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo} from "@/components/intefaces"
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
@@ -33,7 +33,14 @@ export default function Post() {
   const [copied, setCopied] = useState(false);
   const options = ["Software", "Project"];
   const [category, setCategory] = useState<string>("empty");
+  const [languages,setLanguages] = useState<string[]>();
+  const [languagesofDB,setLanguagesofDB] = useState<string[]>([]);
   
+  useEffect(()=>{
+    getLanguages();
+  },[])
+
+
   // Add a Text Block
   const addTextBlock = async () => {
     setBlocks([...blocks, { type: "textBlock", content: "" }]);
@@ -89,8 +96,31 @@ export default function Post() {
     setTimeout(() => setCopied(false), 2000); // Reset icon after 2 seconds
   };
 
-  const publish = async () =>{
+  const getLanguages = async () =>{
+    const actionName = "getLanguages"; 
 
+      try { 
+        const response = await fetch('/api/drizzle/helper/admin', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            actionName: actionName,
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to add page to blog");
+        }
+        console.log("Success:", result);
+
+      } catch (error) {
+        console.error("Error calling API:", error);
+      }
+  }
+
+  const publish = async () =>{
     const check = {link: true, list: true,textBlock: true, textArea: true}
     let array,text:string;
 
@@ -221,6 +251,40 @@ export default function Post() {
               </div>
             </label>
             ))}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="category-select" className="text-sm font-medium text-zinc-400">
+              Select Languages
+            </label>
+    
+            <div className="relative w-full max-w-xs">
+              <select
+                id="category-select"
+                className="
+                  w-full appearance-none cursor-pointer
+                  bg-zinc-950 text-zinc-200 
+                  border border-zinc-800 
+                  rounded-xl px-4 py-2.5 text-sm
+                  transition-all duration-200
+                  hover:border-zinc-700 hover:bg-zinc-900
+                  focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
+                  outline-none
+                "
+              >
+                {languagesofDB.map((item) => (
+                  <option key={item} value={item} className="bg-zinc-950 text-white">
+                    {item}
+                  </option>
+                  ))}
+              </select>
+
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
         </section>

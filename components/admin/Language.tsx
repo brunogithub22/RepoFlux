@@ -170,9 +170,6 @@ export default function Language() {
       )}
       <div className="mt-3">
         
-        <div>
-
-        </div>
         {myLanguages.length > 0 ? 
           (<div>
             <h5 className=" font-medium text-gray-500 dark:text-gray-400">Languages</h5>

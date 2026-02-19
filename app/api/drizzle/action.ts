@@ -1,6 +1,6 @@
 // app/api/tasks/actions.ts
 
-import { languages,images,posts,youtube_video } from "@/src/db/schema";
+import { languages,images,posts,youtube_video,link,github,code } from "@/src/db/schema";
 import { addRow,deleteRow,searchItem,getAllRows, } from "@/src/db/admin/dbOperation";
 import { LinkYoutube } from "@/components/intefaces";
 
@@ -95,12 +95,19 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
   },
   newPage: async (data) =>{
     const date:string = new Date().toDateString();
-    const result = await addRow(posts,{ id: crypto.randomUUID(),title: data.title ,type: data.category, description: data.description,date: date });
-    if(result){
+    
+    const addPage = await addRow(posts,{ id: crypto.randomUUID(),title: data.title ,type: data.category, description: data.description,date: date });
+    //const addImage = await addRow()
+    //const addYoutubeVideo = await addRow()
+    //const addLink = await addRow()
+    //const addCode = await addRow()
+    if(addPage){
         return {message: 'page added' };
     }else{
         return {message: 'page not added' };
     }
+
+    
   },
 
 };

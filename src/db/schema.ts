@@ -54,7 +54,7 @@ export const link= pgTable('links', {
 );
 
 export const youtube_video = pgTable('youtube', {
-    id: uuid('id').primaryKey().notNull(),
+    id: text('id').primaryKey().notNull(),
     title: text('title').notNull().unique(),
     link: text('link').notNull(),
   }
@@ -88,7 +88,7 @@ export const postVideo = pgTable(
   {
     id: uuid("id").primaryKey().notNull(),
     postId: uuid("post_id").notNull(),
-    videoId: uuid("video_id").notNull(),
+    videoId: text("video_id").notNull(),
     text: text('text').notNull()
   },
   (table) => ({

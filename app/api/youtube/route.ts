@@ -2,7 +2,7 @@
 import { LinkYoutube } from '@/components/intefaces';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   const API_KEY = process.env.GOOGLE_PRIVATE_KEY; // The AIza... key
   const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
   
@@ -22,11 +22,13 @@ export async function GET() {
       embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`
     }));
 
+    const { origin } = new URL(request.url);
+
     videos.map(async (video:LinkYoutube,id:number)=>{
-      const actionName = "addYoutube"; // The "function name" your API expects
+      const actionName = "addYoutube"; 
 
       try { 
-        const response = await fetch(`/api/drizzle/helper/admin`, { 
+        const response = await fetch(`${origin}/api/drizzle/helper/admin`, { 
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -55,7 +57,7 @@ export async function GET() {
     const actionName = "removeYoutube"; // The "function name" your API expects
 
     try { 
-      const response = await fetch(`/api/drizzle/helper/admin`, { 
+      const response = await fetch(`${origin}/api/drizzle/helper/admin`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
