@@ -23,7 +23,11 @@ export default function UploadContent() {
         },
         body: JSON.stringify({
           actionName: actionName,
-          payload: { image: info.secure_url, public_id: info.public_id } // Passing the parameter
+          payload: { 
+            name: info.original_filename,
+            image: info.secure_url, 
+            public_id: info.public_id 
+          } // Passing the parameter
         }),
       });
   
@@ -32,21 +36,34 @@ export default function UploadContent() {
       if (!response.ok) {
         throw new Error(result.error || "Failed to add image");
       }
+      console.log(result.result.message)
 
       switch (result.result.message) {
         case 'image added':
           setMessage('Image successfully added to the database!');
           setState("success");
           break;
-        case 'image already exists':
+        case "image alrealdy exists":
           setState("warning");
           setMessage('This image already exists in the database.');
+          fetch('/api/claudinary/removeImage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ publicId: info.public_id }),
+          }) 
+          .then((res) => {
+            if (!res.ok) throw new Error("Delete failed from claudinary"); 
+              return res.json();
+          }).then((data) => {
+            console.log(data);
+          })
+          .catch((err) => console.error(err))
           break;
         default:
           setState("error");
           setMessage('Unexpected response: ' + result.result.message);
       }
-
+      console.log(result.result.message);
       setShowSuccess(true);
       console.log("Success:", info.secure_url);
     } catch (error) {
@@ -64,6 +81,7 @@ export default function UploadContent() {
       folder: "RepoFlux",
       resourceType: "auto",
       multiple: true,
+
       sources: ["local", "url"],
       clientAllowedFormats: ["jpg", "jpeg", "png", "webp", "gif"],
     }}

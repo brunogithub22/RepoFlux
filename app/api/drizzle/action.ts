@@ -66,11 +66,11 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
     }
   },
   newImage: async (data)=>{
-    const check = await searchItem(images,{link: data.image});
+    const check = await searchItem(images,{name: data.name});
     if(check){
-        return {message: 'image alrealdy exists'};
+        return {message: "image alrealdy exists"};
     }
-    const result = await addRow(images, { id: data.id, public_id: data.public_id, link: data.image });
+    const result = await addRow(images, { id: data.public_id, link: data.image,name: data.name });
     if(result){
         return { message: 'image added' };
     }else{
@@ -86,7 +86,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
     }
   },
   removeImage: async (data) =>{
-    const result = await deleteRow(images,{ public_id: data.publicId });
+    const result = await deleteRow(images,{ id: data.publicId });
     if(result){
         return {message: 'image removed' };
     }else{
@@ -195,4 +195,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
 
 export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
 
+    getPost: async (data)=>{
+        
+    }
 };

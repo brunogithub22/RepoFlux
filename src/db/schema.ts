@@ -56,7 +56,7 @@ export const github = pgTable('github', {
 // Images table - owned by a user
 export const images = pgTable('images', {
     id: text('id').primaryKey().notNull(),
-    public_id: text('public_id').notNull(),
+    name: text('name').notNull(),
     link: text('link'),
   }
 );

@@ -41,12 +41,13 @@ export interface CloudinaryUploadInfo {
   width?: number;
   height?: number;
   duration?: number; // videos only
+  original_filename: string;
 }
 
 export interface GalleryImage {
   id: string;
   link: string;
-  public_id: string;
+  name: string;
 }
 
 export interface ImageChange{
@@ -63,4 +64,13 @@ export interface GitHubInfo{
 export interface CodeInfo{
   fileName: string;
   code: string;
+}
+
+export interface Post{
+  id: number;
+  type: string;
+  title: string;
+  description: string;
+  languages: LanguageType[];
+  content: Block[]
 }

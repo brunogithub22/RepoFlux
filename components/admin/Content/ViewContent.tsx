@@ -115,7 +115,7 @@ export default function ViewContent() {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {IMAGES.map((img, index) => (
                         <div 
-                          key={img.public_id} 
+                          key={img.id} 
                           className="group relative flex flex-col items-center"
                           onClick={() => openImage(index)}
                         > 
@@ -136,7 +136,7 @@ export default function ViewContent() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setImageToDelete(img.public_id);
+                                setImageToDelete(img.id);
                               }}
                               className="cursor-pointer absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg 
                                 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2.5 group-hover:translate-y-0"

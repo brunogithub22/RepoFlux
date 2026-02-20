@@ -10,7 +10,7 @@ import {
          Video,Trash2,ChevronLeft,ChevronRight,
          ShieldXIcon, LinkIcon, ShoppingCart, 
          List,Pencil,CheckCircle2,CircleAlert,
-         Github,ExternalLink,Link,Code2,Check,Copy
+         Github,ExternalLink,Link,Code2,Check,Copy,ChevronDown
         } from "lucide-react";
 import { CldImage } from 'next-cloudinary';
 import ChangeImageComponent from "./component/ChangeImage";
@@ -35,6 +35,7 @@ export default function Post() {
   const [category, setCategory] = useState<string>("empty");
   const [mylanguages,setMyLanguages] = useState<LanguageType[]>([]);
   const [languagesofDB,setLanguagesofDB] = useState<LanguageType[]>([]);
+  const [showLanguage,setShowLanguage] = useState(false);
   
   useEffect(()=>{
     getLanguages();
@@ -43,7 +44,6 @@ export default function Post() {
   useEffect(() => {
     console.log("The UI has updated! Current languages:", mylanguages);
   }, [mylanguages]);
-
 
   // Add a Text Block
   const addTextBlock = async () => {
@@ -128,8 +128,9 @@ export default function Post() {
   }
 
   const addLanguage = async (lang: LanguageType) =>{
+    console.log(lang);
     if(lang.id === "0") return;
-    setMyLanguages((prev)=>[...prev,lang])
+    setMyLanguages((prev)=>[...prev,lang]);
   }
 
   const deleteLanguages = async (lang: LanguageType) =>{
@@ -207,6 +208,8 @@ export default function Post() {
       setResult("error");
     }
 
+    setCategory("empty");
+    setMyLanguages([]);
     setTitle("");
     setDescription("");
     setBlocks([])
@@ -270,41 +273,38 @@ export default function Post() {
             ))}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="category-select" className="text-sm font-medium text-zinc-400">
-              Select Languages
-            </label>
-    
-            <div className="relative w-full max-w-xs">
-              <select
-                id="category-select"
-                className="
-                  w-full appearance-none cursor-pointer
-                  bg-zinc-950 text-zinc-200 
-                  border border-zinc-800 
-                  rounded-xl px-4 py-2.5 text-sm
-                  transition-all duration-200
-                  hover:border-zinc-700 hover:bg-zinc-900
-                  focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
-                  outline-none
-                "
-              >
-                {languagesofDB.map((item) => (
-                  <option 
-                       onClick={async ()=> await addLanguage(item)}
-                       key={item.id} value={item.language} 
-                       className="bg-zinc-950 text-white">
-                    {item.language}
-                  </option>
-                  ))}
-              </select>
+          <div className="relative w-full">
+            {/* The "Trigger" Button (Looks like your select) */}
+            <button
+              onClick={() => setShowLanguage(!showLanguage)}
+              className="cursor-pointer w-full flex justify-between items-center bg-zinc-950 text-zinc-200 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm"
+            >
+              <span>Select a language...</span>
+              <ChevronDown size={16} />
+            </button>
 
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
+           {/* The Scrollable Menu */}
+           {showLanguage && (
+            <div className="absolute top-full left-0 w-full mt-2 z-50 
+                      bg-zinc-950 border border-zinc-800 rounded-xl 
+                      shadow-2xl overflow-hidden">
+              {/* THIS IS YOUR OVERFLOW CONTROL */}
+              <div className="max-h-[100px] overflow-y-auto custom-scrollbar">
+                {languagesofDB.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      addLanguage(item);
+                      setShowLanguage(false);
+                    }}
+                    className="cursor-pointer px-4 py-2 hover:bg-zinc-900 cursor-pointer text-sm text-zinc-200 transition-colors"
+                  >
+                    {item.language}
+                  </div>
+                ))}
               </div>
             </div>
+            )}
           </div>
 
           <div className="mt-3">
