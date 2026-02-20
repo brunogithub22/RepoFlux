@@ -19,7 +19,7 @@ export default function ShowItem({isLink ,onClose, onSave }: {isLink: boolean, o
   }
 
   const handleClick = async () =>{
-    onSave({name: name,icon: icon, link: link});
+    onSave({name: name,icon: icon, link: link,idImage: icon.id});
     onClose();
   }
 

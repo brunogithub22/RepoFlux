@@ -8,7 +8,8 @@ export async function  POST(request: Request) {
         blog,
         title,
         description,
-        category
+        category,
+        languages
       } = await request.json();
       
       console.dir(blog, { depth: null });
@@ -28,7 +29,8 @@ export async function  POST(request: Request) {
               title: title,
               description: description,
               content: blog,
-              category: category
+              category: category,
+              languages: languages
              } 
           }),
         });

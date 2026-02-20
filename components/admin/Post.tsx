@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo} from "@/components/intefaces"
+import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo, LanguageType} from "@/components/intefaces"
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
@@ -33,12 +33,16 @@ export default function Post() {
   const [copied, setCopied] = useState(false);
   const options = ["Software", "Project"];
   const [category, setCategory] = useState<string>("empty");
-  const [languages,setLanguages] = useState<string[]>();
-  const [languagesofDB,setLanguagesofDB] = useState<string[]>([]);
+  const [mylanguages,setMyLanguages] = useState<LanguageType[]>([]);
+  const [languagesofDB,setLanguagesofDB] = useState<LanguageType[]>([]);
   
   useEffect(()=>{
     getLanguages();
   },[])
+
+  useEffect(() => {
+    console.log("The UI has updated! Current languages:", mylanguages);
+  }, [mylanguages]);
 
 
   // Add a Text Block
@@ -113,11 +117,23 @@ export default function Post() {
         if (!response.ok) {
           throw new Error(result.error || "Failed to add page to blog");
         }
-        console.log("Success:", result);
+        const language: LanguageType[] = result.result;
+        language.unshift({id: "0",language: ""});
+        setLanguagesofDB(language)
+        console.log("Success:", language);
 
       } catch (error) {
         console.error("Error calling API:", error);
       }
+  }
+
+  const addLanguage = async (lang: LanguageType) =>{
+    if(lang.id === "0") return;
+    setMyLanguages((prev)=>[...prev,lang])
+  }
+
+  const deleteLanguages = async (lang: LanguageType) =>{
+    setMyLanguages((prev)=> prev.filter((language)=> language.id !== lang.id));
   }
 
   const publish = async () =>{
@@ -169,6 +185,7 @@ export default function Post() {
           title: title,
           description: description,
           category: category,
+          languages: mylanguages,
           blog: blocks
         }),
       });
@@ -273,8 +290,11 @@ export default function Post() {
                 "
               >
                 {languagesofDB.map((item) => (
-                  <option key={item} value={item} className="bg-zinc-950 text-white">
-                    {item}
+                  <option 
+                       onClick={async ()=> await addLanguage(item)}
+                       key={item.id} value={item.language} 
+                       className="bg-zinc-950 text-white">
+                    {item.language}
                   </option>
                   ))}
               </select>
@@ -287,6 +307,34 @@ export default function Post() {
             </div>
           </div>
 
+          <div className="mt-3">
+        
+            {mylanguages.length > 0 ? 
+             (<div>
+                <h5 className=" font-medium text-gray-500 dark:text-gray-400">Languages</h5>
+                <ul className="  mt-2 max-h-80 w-full overflow-y-auto bg-white dark:bg-zinc-950">
+                  {mylanguages.map(lang => (
+                    <li
+                       key={lang.id}
+                       className="p-2 flex items-center gap-2"
+                    >
+                      <button className='cursor-pointer' onClick={ async ()=> await deleteLanguages(lang)}>
+                        <Trash2 size={20}/>
+                      </button>  
+                      <span> - {lang.language}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>)
+               : (
+                <div className="mt-4 p-4 rounded-xl border border-dashed text-center text-sm text-gray-400 dark:border-zinc-800">
+                  <p className="font-medium mb-1">No languages added yet</p>
+                  <p>Search for a language above and click it to add</p>
+                </div>
+                )
+              }
+            </div>
+
         </section>
 
 
@@ -296,7 +344,7 @@ export default function Post() {
             <div key={index} className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-all">
               <div className="absolute -left-10 top-6 text-xs font-mono text-zinc-700">0{index + 1}</div>
               
-              <button onClick={()=>setBlocks(blocks.filter((_, i) => i !== index))} className="cursor-pointer absolute -right-3 -top-3 p-2 bg-red-900/20 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition hover:bg-red-900/40">
+              <button onClick={()=>setBlocks((prev)=>prev.filter((_, i) => i !== index))} className="cursor-pointer absolute -right-3 -top-3 p-2 bg-red-900/20 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition hover:bg-red-900/40">
                 <Trash2 size={14} />
               </button>
 
