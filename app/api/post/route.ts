@@ -2,54 +2,43 @@
 
 import { NextResponse } from "next/server";
 
-export async function  POST(request: Request) {
+export async function POST(request: Request) {
     try {
-      const {
-        blog,
-        title,
-        description,
-        category,
-        languages
-      } = await request.json();
-      
-      console.dir(blog, { depth: null });
-      
-      const actionName = "newPage"; // The "function name" your API expects
+        const { blog, title, description, category, postLanguages } = await request.json();
+        const actionName = "newPage";
+        const { origin } = new URL(request.url);
 
-      try { 
-        const { origin } = new URL(request.url); 
-        const response = await fetch(`${origin}/api/drizzle/helper/admin`, { 
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            actionName: actionName,
-            payload: { 
-              title: title,
-              description: description,
-              content: blog,
-              category: category,
-              languages: languages
-             } 
-          }),
+        // 1. Execute the second fetch
+        const response = await fetch(`${origin}/api/drizzle/helper/admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                actionName,
+                payload: { title: title, description: description, content: blog, category: category,language: postLanguages }
+            }),
         });
-  
+
         const result = await response.json();
-    
+
+        // 2. CHECK if the second fetch failed
         if (!response.ok) {
-          throw new Error(result.error || "Failed to add page to blog");
+            // Return the EXACT error from the second API to the client
+            return NextResponse.json(
+                { error: result.error || "Database operation failed" }, 
+                { status: response.status }
+            );
         }
 
-        console.log("Success:", result);
+        // 3. Success!
+        console.log("Success of post:", result);
+        return NextResponse.json({ message: "Success", result }, { status: 200 });
 
-      } catch (error) {
-        console.error("Error calling API:", error);
-      }
-      
-      return NextResponse.json({ status: 200 });
-    } catch (error) {
-      console.error(error);
-      return NextResponse.json({ error: "Failed to generate signature" }, { status: 500 });
+    } catch (error: any) {
+        // 4. Catch unexpected crashes (Network issues, JSON parsing errors)
+        console.error("Global API Error:", error);
+        return NextResponse.json(
+            { error: error.message || "Internal Server Error" }, 
+            { status: 500 }
+        );
     }
 }

@@ -22,7 +22,6 @@ export interface Item{
   name: string;
   link?: string;
   icon: Gallery;
-  idImage: string;
 }
 
 export interface LanguageType {

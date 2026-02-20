@@ -115,7 +115,7 @@ export default function Post() {
         });
         const result = await response.json();
         if (!response.ok) {
-          throw new Error(result.error || "Failed to add page to blog");
+          throw new Error(result.error || "Failed to add language");
         }
         const language: LanguageType[] = result.result;
         language.unshift({id: "0",language: ""});
@@ -129,7 +129,6 @@ export default function Post() {
 
   const addLanguage = async (lang: LanguageType) =>{
     console.log(lang);
-    if(lang.id === "0") return;
     setMyLanguages((prev)=>[...prev,lang]);
   }
 
@@ -138,7 +137,7 @@ export default function Post() {
   }
 
   const publish = async () =>{
-    const check = {link: true, list: true,textBlock: true, textArea: true}
+    const check = {link: true, list: true,textBlock: true, textArea: true};
     let array,text:string;
 
     blocks.map((block)=>{
@@ -174,31 +173,32 @@ export default function Post() {
       }
     })
 
-    if(Object.values(check).every(value => value === true) && category !== "empty" && title.trim() && description.trim())
+    if(category !== "empty" && title.trim() && description.trim())
     {
-      setResult("success");
       const response = await fetch('/api/post', { // Use the path to your route.ts
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: title,
-          description: description,
+          title: title.trim() ? title: "",
+          description: description.trim() ? description : "",
           category: category,
-          languages: mylanguages,
-          blog: blocks
+          postLanguages: Array.isArray(mylanguages) ? mylanguages: [],
+          blog: Array.isArray(blocks) ? blocks: []
         }),
       });
   
       const res = await response.json();
       
       if (!response.ok) {
-        throw new Error(res.error || "Failed to add language");
+        setResult("error");
+        throw new Error(res.error || "Failed to add post");
+      }else{
+        console.log("Success:", res);
+        setResult("success");
+        setMessage("Post created with success!!");
       }
-
-      console.log("Success:", res);
-      setMessage("Post created with success!!");
     }else{
       if(category === "empty"){
         setMessage("Some text is missing and select the category");
@@ -217,7 +217,7 @@ export default function Post() {
   };
 
   return (
-    <div onClick={() => {if(open){ setOpen(false);}}} className=" mx-auto p-10 space-y-5 bg-zinc-950 text-zinc-200 min-h-screen font-sans">
+    <div onClick={() => {if(open){ setOpen(false);} if(showLanguage){setShowLanguage(false)}}} className=" mx-auto p-10 space-y-5 bg-zinc-950 text-zinc-200 min-h-screen font-sans">
       {/* HEADER */}
       <header className="flex justify-between items-end border-b border-zinc-800 pb-2">
         <div>
@@ -237,10 +237,12 @@ export default function Post() {
             id="title"
             type="text"
             placeholder="Project Title"
+            value={title}
             onChange={(e)=>setTitle(e.target.value)}
             className="w-full bg-transparent text-4xl font-bold placeholder:text-zinc-800 outline-none border-none focus:ring-0"
           />
           <textarea
+            value={description}
             onChange={(e)=>setDescription(e.target.value)}
             placeholder="Describe the high-level process..."
             className="w-full bg-transparent text-zinc-400 placeholder:text-zinc-800 outline-none border-none focus:ring-0 resize-none"
@@ -289,7 +291,7 @@ export default function Post() {
                       bg-zinc-950 border border-zinc-800 rounded-xl 
                       shadow-2xl overflow-hidden">
               {/* THIS IS YOUR OVERFLOW CONTROL */}
-              <div className="max-h-[100px] overflow-y-auto custom-scrollbar">
+              <div className="max-h-[150px] overflow-y-auto custom-scrollbar">
                 {languagesofDB.map((item) => (
                   <div
                     key={item.id}

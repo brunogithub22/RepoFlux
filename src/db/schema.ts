@@ -6,7 +6,7 @@ export const posts = pgTable('posts', {
   title: text('title'),
   type: text('type'),
   description: text('description'),
-  languages: jsonb('languages'),
+  languages: jsonb('languages').$type<{id: string, language: string}[]>(),
   date: date('date'),
 });
 

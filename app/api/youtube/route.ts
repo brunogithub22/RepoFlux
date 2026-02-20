@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         });
         const result = await response.json();
         if (!response.ok) {
-          throw new Error(result.error || "Failed to add page to blog");
+          throw new Error(result.error || "Failed to add video youtube to blog");
         }
         console.log("added video"+ video);
         console.log("Success:", result);
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || "Failed to add page to blog");
+        throw new Error(result.error || "Failed to add youtube video to blog");
       }
       console.log("Success response:", result);
     } catch (error) {

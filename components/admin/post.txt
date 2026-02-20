@@ -199,6 +199,3 @@ Code and Github:              {block.type === "github" &&(
                   </div>
                 </section>
               )}
-
-
-              

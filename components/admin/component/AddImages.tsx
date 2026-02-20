@@ -73,7 +73,7 @@ export default function LoadImage({ onClose, onSave, isItem }: { onClose: () => 
                                 const isSelected = selectedImages.includes(img);
                                 return(                 
                                   <div 
-                                   key={img.public_id} 
+                                   key={img.id} 
                                    className="cursor-pointer group relative flex flex-col items-center" 
                                    onClick={() => toggleSelection(img)}
                                   >
