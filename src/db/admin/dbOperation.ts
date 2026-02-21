@@ -87,3 +87,38 @@ export async function searchItem<T extends PgTable<TableConfig>>(table: T,criter
   }
 }
 
+export async function getItem<T extends PgTable<TableConfig>>(table: T,criteria: Partial<InferInsertModel<T>>) {
+
+  try {
+    const columns = getTableColumns(table);
+    const entries = Object.entries(criteria);
+
+    // 1. If criteria is empty, just select all
+    if (entries.length === 0) {
+      return await dbAdmin.select().from(table as any);
+    }
+
+    const filters = entries.map(([key, value]) => {  
+      const columnReference = columns[key];
+
+      if (!columnReference) {
+        throw new Error(`Column ${key} not found in table ${table}`);
+      }
+
+      // Create the comparison: id = 'some-uuid'
+      return eq(columnReference, value);
+    });
+
+    // 2. Apply the filters to the delete query
+    const result = await dbAdmin
+      .select()
+      .from(table as any)
+      .where(and(...filters));
+
+    return result;
+  } catch (error) {
+    console.error(`Search error in ${table._.name}:`, error);
+    return [];
+  }
+}
+

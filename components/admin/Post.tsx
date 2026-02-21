@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo, LanguageType} from "@/components/intefaces"
+import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo, LanguageType,NavigationProps} from "@/components/intefaces"
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
@@ -15,7 +15,7 @@ import {
 import { CldImage } from 'next-cloudinary';
 import ChangeImageComponent from "./component/ChangeImage";
 
-export default function Post() {
+export default function Post({ onNavigate }: NavigationProps) {
   
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [mediaVideo, setMediaVideo] = useState(false);
@@ -198,6 +198,7 @@ export default function Post() {
         console.log("Success:", res);
         setResult("success");
         setMessage("Post created with success!!");
+
       }
     }else{
       if(category === "empty"){
@@ -291,7 +292,7 @@ export default function Post() {
                       bg-zinc-950 border border-zinc-800 rounded-xl 
                       shadow-2xl overflow-hidden">
               {/* THIS IS YOUR OVERFLOW CONTROL */}
-              <div className="max-h-[150px] overflow-y-auto custom-scrollbar">
+              <div className="max-h-37.5 overflow-y-auto custom-scrollbar">
                 {languagesofDB.map((item) => (
                   <div
                     key={item.id}
@@ -299,7 +300,7 @@ export default function Post() {
                       addLanguage(item);
                       setShowLanguage(false);
                     }}
-                    className="cursor-pointer px-4 py-2 hover:bg-zinc-900 cursor-pointer text-sm text-zinc-200 transition-colors"
+                    className=" px-4 py-2 hover:bg-zinc-900 cursor-pointer text-sm text-zinc-200 transition-colors"
                   >
                     {item.language}
                   </div>
@@ -507,7 +508,7 @@ export default function Post() {
                             bg-zinc-950/50 border border-zinc-800 rounded-lg px-3 py-1
                             text-[10px] font-mono text-zinc-400 uppercase tracking-widest text-center
                             hover:border-zinc-700 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
-                            outline-none transition-all w-full max-w-[240px]
+                            outline-none transition-all w-full max-w-60
                           `}
                           placeholder="FileName..."
                         />
@@ -549,7 +550,7 @@ export default function Post() {
                           }));
                         }} 
                         spellCheck={false}
-                        className="w-full h-[300px] bg-transparent text-zinc-300 outline-none resize-none font-mono leading-relaxed selection:bg-blue-500/30"
+                        className="w-full h-75 bg-transparent text-zinc-300 outline-none resize-none font-mono leading-relaxed selection:bg-blue-500/30"
                         placeholder="// Paste your expert code here..."
                       />
                     </div>
@@ -896,7 +897,7 @@ export default function Post() {
       </div>
 
       {/* FLOATING TOOLBAR */}
-      <div className="fixed bottom-8 left-1/2 ml-10 -translate-x-1/2 flex flex-col items-center z-50">
+      <div className="fixed bottom-8 left-1/2  -translate-x-1/2 flex flex-col items-center z-50">
         <button 
           onClick={() => setOpen(!open)} 
           className={`
@@ -911,7 +912,7 @@ export default function Post() {
         {open && (
           <div className="absolute bottom-full mb-4 w-56 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in duration-200">
             <p className="text-[10px] font-bold text-zinc-500 px-3 py-2 uppercase tracking-widest">Components</p>
-            <div className="grid grid-cols-1 gap-1 overflow-y-auto max-h-[200px] custom-scrollbar">
+            <div className="grid grid-cols-1 gap-1 overflow-y-auto max-h-50 custom-scrollbar">
               <MenuButton icon={<Type size={16}/>} label="Text Block" onClick={() => {addTextBlock(); setOpen(false);}} />
               <MenuButton icon={<Type size={16}/>} label="Text Area Block" onClick={() => {addTextAreaBlock(); setOpen(false);}} />              
               <MenuButton icon={<ImageIcon size={16}/>} label="Cloudinary Media" onClick={() => {setMediaImage(true); setOpen(false);}} />
@@ -991,46 +992,58 @@ export default function Post() {
                 </h2>
                 <button onClick={() => setMediaList(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
               </div>
-
-              <LoadList onClose={() => setMediaList(false)} onSave={addList} />
-              
+              <LoadList onClose={() => setMediaList(false)} onSave={addList} />      
             </div>
           </div>
         );
       })() }
 
       {showResult && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-zinc-950 border border-zinc-800 p-8 rounded-4xl max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="flex flex-col items-center text-center">
 
-              {result === "success"  ? (
-                <div className="bg-green-500/10 p-4 rounded-full mb-4">
-                  <CheckCircle2 size={48} className="text-green-500" />
-                </div>
-              ):(
-                result === "warning" ?(
-                  <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
-                    <CircleAlert size={48} className="text-yellow-500" />
-                  </div>
-                ):(
-                  <div className="bg-red-500/10 p-4 rounded-full mb-4">
-                    <ShieldXIcon size={48} className="text-red-500" />
-                  </div>
-                )
-              )}
-              
-              <h3 className="text-xl font-bold text-white mb-2">{message}</h3>
-              
-              <button
-                onClick={() => setShowResult(false)}
-                className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
-              >
-                Continue
-              </button>
+              {/* Dynamic Icon Section */}
+              <div className={`p-5 rounded-full mb-6 ${
+                  result === "success" ? "bg-green-500/10" : 
+                  result === "warning" ? "bg-yellow-500/10" : "bg-red-500/10"
+                }`}>
+                {result === "success" && <CheckCircle2 size={48} className="text-green-500" />}
+                {result === "warning" && <CircleAlert size={48} className="text-yellow-500" />}
+                {result === "error" && <ShieldXIcon size={48} className="text-red-500" />}
+              </div>
+        
+              <h3 className="text-2xl font-black text-white mb-2 tracking-tight">{message}</h3>
+              <p className="text-zinc-400 text-sm mb-8">
+                {result === "success" ? "Everything looks great!" : "Something needs your attention."}
+              </p>
+
+              {/* Action Buttons Container */}
+              <div className="flex flex-col gap-3 w-full">
+                {result === "success" && (
+                  <button 
+                    onClick={() => onNavigate?.('overview')}
+                    className="cursor-pointer w-full py-3.5 bg-white text-black hover:bg-zinc-200 font-bold rounded-2xl transition-all active:scale-[0.98] shadow-lg shadow-white/5"
+                  >
+                    View Post
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowResult(false)}
+                  className={`cursor-pointer w-full py-3.5 font-bold rounded-2xl transition-all active:scale-[0.98] ${
+                    result === "success" 
+                     ? "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 border border-zinc-800" 
+                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20"
+                  }`}
+                >
+                  {result === "success" ? "Dismiss" : "Try Again"}
+                </button>
+              </div>
+
             </div>
           </div>
-        </div>
+        </div> 
       )}
     </div>
   );

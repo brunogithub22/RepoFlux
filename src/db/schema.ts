@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date ,foreignKey, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date ,foreignKey, jsonb,integer,boolean } from "drizzle-orm/pg-core";
 
 // Posts table - owned by a user
 export const posts = pgTable('posts', {
@@ -7,6 +7,7 @@ export const posts = pgTable('posts', {
   type: text('type'),
   description: text('description'),
   languages: jsonb('languages').$type<{id: string, language: string}[]>(),
+  isPublished: boolean('published').default(false).notNull(),
   date: date('date'),
 });
 
@@ -15,6 +16,7 @@ export const textBlock = pgTable('textBlock', {
     type: text('type').notNull(),
     text: text('text').notNull(),
     postId: uuid("post_id").notNull(),
+    idBlock: integer("id_block").notNull(),
   },
   (table) => ({
     postFk: foreignKey({
@@ -29,6 +31,7 @@ export const code = pgTable('code', {
     filename: text('filename').notNull(),
     code: text('code').notNull(), 
     postId: uuid("post_id").notNull(),
+    idBlock: integer("id_block").notNull(),
   },
   (table) => ({
     postFk: foreignKey({
@@ -43,6 +46,7 @@ export const github = pgTable('github', {
     link: text('link').notNull(),
     description: text('description').notNull(),  
     postId: uuid("post_id").notNull(),
+    idBlock: integer("id_block").notNull(),
     text: text('text').notNull()
   },
   (table) => ({
@@ -67,6 +71,8 @@ export const link= pgTable('links', {
     link: text('link').notNull(),
     name: text('name').notNull(),
     imageId: text('image_id').notNull(),
+    idBlock: integer("id_block").notNull(),
+    index: integer('index').notNull(),
     postId: uuid("post_id").notNull(),
   },
   (table) => ({
@@ -96,6 +102,8 @@ export const postImage = pgTable(
     id: uuid("id").primaryKey().notNull(),
     postId: uuid("post_id").notNull(),
     imageId: text("image_id").notNull(),
+    idBlock: integer('id_block').notNull(),
+    index: integer('index').notNull(),
     text: text('text').notNull()
   },
   (table) => ({
@@ -118,6 +126,7 @@ export const postVideo = pgTable(
     id: uuid("id").primaryKey().notNull(),
     postId: uuid("post_id").notNull(),
     videoId: text("video_id").notNull(),
+    idBlock: integer("id_block").notNull(),
     text: text('text').notNull()
   },
   (table) => ({

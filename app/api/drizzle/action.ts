@@ -1,7 +1,7 @@
 // app/api/tasks/actions.ts
 
-import { languages,images,posts,youtube_video,link,github,code,postImage,textBlock,postVideo } from "@/src/db/schema";
-import { addRow,deleteRow,searchItem,getAllRows, } from "@/src/db/admin/dbOperation";
+import { languages,images,posts,youtube_video,link,github,code,postImage,textBlock,postVideo, feedback } from "@/src/db/schema";
+import { addRow,deleteRow,searchItem,getAllRows,getItem } from "@/src/db/admin/dbOperation";
 import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube } from "@/components/intefaces";
 
 export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
@@ -105,28 +105,30 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         const addPage = await addRow(posts,{ id: id_post,title: data.title ,type: data.category, description: data.description,date: date, languages: data.language });
         if(!Array.isArray(data.content)){return {message: "not array"}}
        // Use for...of to ensure each block is saved before moving to the next
-        for (const item of data.content) {
+        data.content.map(async (item: Block,index:number)=>{
             let text: string;
             switch (item.type) {
                 case "image":
                     const images = item.content as Gallery[];
                     // Nested loop must also be for...of
-                    for (const image of images) {
+                    images.map(async (image,id)=>{
                         const imgText = image.text?.trim() ? image.text : "";
                         const addImage = await addRow(postImage, {
                             id: crypto.randomUUID(),
                             postId: id_post,
                             imageId: image.id,
-                            text: imgText
+                            text: imgText,
+                            idBlock: index,
+                            index: id
                         });
                         if (!addImage) check.image = false;
-                    } 
+                    }) 
                     break;
 
                 case "link":
                 case "list":
                     const items = item.content as Item[];
-                    for (const itemofList of items) {
+                    items.map(async (itemofList,id)=>{
                         const linkText = itemofList.link?.trim() ? itemofList.link : "";
                         const additem = await addRow(link, {
                             id: crypto.randomUUID(),
@@ -134,18 +136,26 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
                             name: itemofList.name,
                             imageId: itemofList.icon.id,
                             link: linkText,
-                            type: item.type
+                            type: item.type,
+                            idBlock: index,
+                            index: id
                         });
                         if (!additem) {
                             if (item.type === "list") check.list = false;
                             else check.link = false;
                         }
-                    }
+                    })
                     break;
                 case "textBlock":
                 case "textAreaBlock":
                     text = item.content as string;
-                    const addText = await addRow(textBlock,{id: crypto.randomUUID(),postId: id_post,type: item.type,text: text});
+                    const addText = await addRow(textBlock,{
+                        id: crypto.randomUUID(),
+                        postId: id_post,
+                        type: item.type,
+                        text: text,
+                        idBlock: index
+                    });
                     if(addText){
                         console.log("Text added");
                     }else{
@@ -160,7 +170,13 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
                 case "youtube":
                     const youtube = item.content as Gallery[]
                     text = youtube[0].text?.trim() ? youtube[0].text : "";
-                    const addYoutube = await addRow(postVideo,{id: crypto.randomUUID(),postId: id_post,videoId:youtube[0].id,text:text});
+                    const addYoutube = await addRow(postVideo,{
+                        id: crypto.randomUUID(),
+                        postId: id_post,
+                        videoId:youtube[0].id,
+                        text: text,
+                        idBlock: index
+                    });
                     if(addYoutube){
                         console.log("Youtube video", youtube[0].id, "added");
                     }else{
@@ -170,7 +186,13 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
                     break;
                 case "code":
                     const Code = item.content as CodeInfo;
-                    const addCode = await addRow(code,{id: crypto.randomUUID(),postId: id_post,code:Code.code,filename: Code.fileName});
+                    const addCode = await addRow(code,{
+                        id: crypto.randomUUID(),
+                        postId: id_post,
+                        code:Code.code,
+                        filename: Code.fileName,
+                        idBlock: index
+                    });
                     if(addCode){
                         console.log("Code added");
                     }else{
@@ -180,7 +202,14 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
                     break;
                 case "github":
                     const Github = item.content as GitHubInfo;
-                    const addGitHub = await addRow(github,{id: crypto.randomUUID(),postId: id_post,description: Github.description,link:Github.link,text:Github.text});
+                    const addGitHub = await addRow(github,{
+                        id: crypto.randomUUID(),
+                        postId: id_post,
+                        description: Github.description,
+                        link:Github.link,
+                        text:Github.text,
+                        idBlock: index
+                    });
                     if(addGitHub){
                         console.log("Repository added");
                     }else{
@@ -188,9 +217,9 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
                        check.github = false;
                     }
                     break;
-
             }
-        }
+        
+        });
 
         if (addPage && Object.values(check).every(v => v === true)) {
             return { message: 'page added' };
@@ -200,10 +229,26 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
 
     }catch(error){console.log(error); return{message:"error"}}
     
-
-    
-
   },
+
+  getPosts: async ()=>{
+    const result = await getItem(posts,{});
+    if(result.length > 0){
+        return result;
+    }else{
+        return [];
+    }
+  },
+
+  getPost: async ()=>{},
+
+  getFeedbacks: async(data)=>{
+    return await getItem(feedback,{});
+  },
+  
+  modifyPost: async (data)=>{
+
+  }
 
 };
 

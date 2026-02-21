@@ -12,51 +12,73 @@ import {
   LogOut,
   BookOpen,
   ImagePlus,
-  CodeXml
+  CodeXml,
+  Menu,    // Added for mobile menu
+  X        // Added for mobile menu
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile state
 
-  // 2. The Power Move: The Component Map
   const VIEWS: Record<string, JSX.Element> = {
-    overview: <Overview/>,
-    post: <Post/>,
-    content: <Content/>,
-    language: <Language/>
+    overview: <Overview onNavigate={setActiveTab}/>,
+    post: <Post onNavigate={setActiveTab}/>,
+    content: <Content onNavigate={setActiveTab}/>,
+    language: <Language onNavigate={setActiveTab}/>
   };
 
   const NAV_ITEMS = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'post', label: 'Post',icon: BookOpen},
+    { id: 'post', label: 'New Post', icon: BookOpen},
     { id: 'content', label: 'Content', icon: ImagePlus },
     { id: 'language', label: 'Language', icon: CodeXml}
   ];
 
   const handleSignOut = async () => {
-    // 1. Sign out from Supabase
     await supabase.auth.signOut();
     router.push("/");
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#050505]">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#050505] overflow-hidden">
+      
+      {/* MOBILE HEADER - Only visible on small screens */}
+      <div className="lg:hidden fixed top-0 left-0 w-full bg-white dark:bg-black border-b border-gray-800 p-4 z-50 flex justify-between items-center">
+        <h2 className="text-blue-600 font-black tracking-tighter text-lg uppercase">
+          Repo<span className="text-gray-900 dark:text-white">Flux</span>
+        </h2>
+        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-500">
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
       {/* SIDEBAR */}
-      <aside className="w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex flex-col">
-        <div className="p-6">
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 
+        transform transition-transform duration-300 ease-in-out flex flex-col
+        lg:relative lg:translate-x-0 
+        ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="p-6 hidden lg:block">
           <h2 className="text-blue-600 font-black tracking-tighter text-xl uppercase">
             Repo<span className="text-gray-900 dark:text-white">Flux</span>
           </h2>
         </div>
 
+        {/* Padding for mobile header spacing */}
+        <div className="h-16 lg:hidden" />
+
         <nav className="flex-1 px-4 space-y-2">
           {NAV_ITEMS.map((item) => (
             <button 
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                setActiveTab(item.id);
+                setIsMenuOpen(false); // Close menu on mobile after click
+              }}
               className={`cursor-pointer flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all ${
                 activeTab === item.id 
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" 
@@ -67,7 +89,7 @@ export default function AdminDashboard() {
             </button>
           ))}
         </nav>
-        {/* SIGN OUT SECTION */}
+
         <div className="p-4 border-t border-gray-100 dark:border-gray-800">
           <button 
             onClick={handleSignOut}
@@ -78,9 +100,19 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
+      {/* OVERLAY for mobile */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden" 
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
       {/* MAIN CONTENT */}
-      <main className="flex-1 overflow-auto">
-        {VIEWS[activeTab]}
+      <main className="flex-1 overflow-auto pt-16 lg:pt-0">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+           {VIEWS[activeTab]}
+        </div>
       </main>
     </div>
   );

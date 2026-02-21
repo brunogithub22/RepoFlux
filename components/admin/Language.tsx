@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback} from 'react';
 import { Search, Loader2, Code2, Trash2,CheckCircle2,ShieldXIcon,CircleAlert } from 'lucide-react';
-import  { LanguageType } from '@/components/intefaces';
+import  { LanguageType,NavigationProps } from '@/components/intefaces';
 
 
-export default function Language() {
+export default function Language({ onNavigate }: NavigationProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [message, setMessage] = useState("");
   const [state, setState] = useState<"idle" | "success" | "warning" | "error">("idle");

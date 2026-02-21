@@ -24,6 +24,10 @@ export interface Item{
   icon: Gallery;
 }
 
+export interface NavigationProps {
+  onNavigate?: (tab: string) => void;
+}
+
 export interface LanguageType {
   id: string;
   language: string;
@@ -67,6 +71,7 @@ export interface CodeInfo{
 
 export interface Post{
   id: number;
+  published: boolean;
   type: string;
   title: string;
   description: string;

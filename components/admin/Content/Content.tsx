@@ -4,8 +4,9 @@ import {useState, JSX} from 'react';
 import { LayoutDashboard,UploadCloud } from 'lucide-react';
 import UploadContent from './UploadContent';
 import ViewContent from './ViewContent';
+import { NavigationProps } from '@/components/intefaces';
 
-export default function Content(){
+export default function Content({ onNavigate }: NavigationProps){
 
   const [activeSubTab, setActiveSubTab] = useState("view");
 
