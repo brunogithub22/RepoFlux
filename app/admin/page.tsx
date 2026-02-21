@@ -7,6 +7,8 @@ import Overview from '@/components/admin/Overview';
 import Content from '@/components/admin/Content/Content';
 import Post from '@/components/admin/Post';
 import Language from '@/components/admin/Language';
+import ModifyPost from '@/components/admin/Post/ModifyPost';
+import ViewPost from '@/components/admin/Post/ViewPost';
 import { 
   LayoutDashboard, 
   LogOut,
@@ -14,7 +16,9 @@ import {
   ImagePlus,
   CodeXml,
   Menu,    // Added for mobile menu
-  X        // Added for mobile menu
+  X,        // Added for mobile menu
+  Pencil,
+  Eye
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -27,14 +31,18 @@ export default function AdminDashboard() {
     overview: <Overview onNavigate={setActiveTab}/>,
     post: <Post onNavigate={setActiveTab}/>,
     content: <Content onNavigate={setActiveTab}/>,
-    language: <Language onNavigate={setActiveTab}/>
+    language: <Language onNavigate={setActiveTab}/>,
+    view: <ModifyPost onNavigate={setActiveTab} />,
+    modify: <ViewPost onNavigate={setActiveTab} />
   };
 
   const NAV_ITEMS = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'post', label: 'New Post', icon: BookOpen},
     { id: 'content', label: 'Content', icon: ImagePlus },
-    { id: 'language', label: 'Language', icon: CodeXml}
+    { id: 'language', label: 'Language', icon: CodeXml},
+    { id: 'view' , label: 'View Post', icon: Eye},
+    { id: 'modify', label: 'Modify Post', icon: Pencil}
   ];
 
   const handleSignOut = async () => {
@@ -72,22 +80,40 @@ export default function AdminDashboard() {
         <div className="h-16 lg:hidden" />
 
         <nav className="flex-1 px-4 space-y-2">
-          {NAV_ITEMS.map((item) => (
-            <button 
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setIsMenuOpen(false); // Close menu on mobile after click
-              }}
-              className={`cursor-pointer flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all ${
-                activeTab === item.id 
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" 
-                  : "text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900"
-              }`}
-            >
-              <item.icon size={18} /> {item.label}
-            </button>
-          ))}
+          {NAV_ITEMS.map((item) => {
+           
+            const isDisabled = item.id === 'view' || item.id === 'modify';
+
+            return (
+              <button 
+                key={item.id}
+                disabled={isDisabled}
+      onClick={() => {
+        if (isDisabled) return; // Safety check
+        setActiveTab(item.id);
+        setIsMenuOpen(false);
+      }}
+      className={`flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all border ${
+        isDisabled 
+          ? "bg-zinc-900/50 border-zinc-800/50 text-zinc-600 cursor-not-allowed opacity-60 filter saturate-50" 
+          : activeTab === item.id 
+            ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-900/20 cursor-pointer" 
+            : "text-zinc-400 border-transparent hover:bg-zinc-900 hover:text-zinc-100 cursor-pointer"
+      }`}
+    >
+      <item.icon size={18} className={isDisabled ? "text-zinc-700" : ""} /> 
+      {item.label}
+      
+      {/* Optional: Add a small "Lock" icon or "Soon" badge */}
+      {isDisabled && (
+        <span className="ml-auto text-[10px] bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+          Locked
+        </span>
+      )}
+    </button>
+  );
+            
+          })}
         </nav>
 
         <div className="p-4 border-t border-gray-100 dark:border-gray-800">

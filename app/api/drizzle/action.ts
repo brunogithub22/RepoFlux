@@ -242,8 +242,13 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
 
   getPost: async ()=>{},
 
-  getFeedbacks: async(data)=>{
-    return await getItem(feedback,{});
+  getFeedbacks: async ()=>{
+    const result = await getItem(feedback,{});
+    if(result.length > 0){
+        return result;
+    }else{
+        return [];
+    }
   },
   
   modifyPost: async (data)=>{

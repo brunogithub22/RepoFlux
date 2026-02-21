@@ -85,20 +85,24 @@ export default function Overview({ onNavigate }: NavigationProps) {
                         </span>
                       </td>
                       <td className="p-4">
-                        <button className="cursor-pointer flex items-center gap-2 text-zinc-400 hover:text-blue-400 transition-colors text-sm font-semibold group/btn">
+                        <button 
+                          className="cursor-pointer flex items-center gap-2 text-zinc-400 hover:text-blue-400 transition-colors text-sm font-semibold group/btn"
+                          onClick={()=>{onNavigate?.('view')}}
+                        >
                           <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                          View
                         </button>
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button  
+                            onClick={()=>{}}
                             title="Edit Post"
                             className="cursor-pointer p-2 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all active:scale-90"
                           >
                             <Edit3 size={18} />
                           </button>   
                           <button 
+                            onClick={()=>{}}
                             title="Delete Post"
                             className="cursor-pointer p-2 hover:bg-zinc-800 text-zinc-500 hover:text-red-400 rounded-lg transition-all active:scale-90"
                           >

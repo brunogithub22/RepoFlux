@@ -1,3 +1,5 @@
+import { UUID } from "crypto";
+
 export interface LinkYoutube{
   id: string,
   title: string,
@@ -70,7 +72,7 @@ export interface CodeInfo{
 }
 
 export interface Post{
-  id: number;
+  id: UUID;
   published: boolean;
   type: string;
   title: string;
