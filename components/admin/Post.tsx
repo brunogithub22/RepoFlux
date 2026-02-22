@@ -195,10 +195,24 @@ export default function Post({ onNavigate }: NavigationProps) {
         setResult("error");
         throw new Error(res.error || "Failed to add post");
       }else{
-        console.log("Success:", res);
-        setResult("success");
-        setMessage("Post created with success!!");
-
+        
+        switch(res.result.result.message){
+          case "page added":
+            console.log("Success:", res);
+            setResult("success");
+            setMessage("Post created with success!!");
+            break;
+          case "page not added":
+            console.log("Error:", res);
+            setResult("error");
+            setMessage("Something went wrong!!");
+            break;
+          case "Post already exsist":
+            console.log("Success:", res);
+            setResult("warning");
+            setMessage("Post already exsist!!");
+            break;
+        }      
       }
     }else{
       if(category === "empty"){

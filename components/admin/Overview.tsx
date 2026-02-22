@@ -1,10 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { FileText, Eye, MessageSquare, Plus, LucideIcon,ShieldXIcon,ExternalLink,Edit3,Trash2 } from 'lucide-react';
-import { Block, NavigationProps, post } from '@/components/intefaces';
+import { post } from '@/components/intefaces';
 
 // --- Main Component: Overview (Self-Fetching) ---
-export default function Overview({ onNavigate }: NavigationProps) {
+export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab: string) => void; onViewPost: (post: post) => void;}) {
   // 1. Initialize state inside the component
   const [posts, setPosts] = useState<post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +88,7 @@ export default function Overview({ onNavigate }: NavigationProps) {
                       <td className="p-4">
                         <button 
                           className="cursor-pointer flex items-center gap-2 text-zinc-400 hover:text-blue-400 transition-colors text-sm font-semibold group/btn"
-                          onClick={()=>{onNavigate?.('view')}}
+                          onClick={()=>{onViewPost(post); onNavigate?.('view')}}
                         >
                           <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                         </button>

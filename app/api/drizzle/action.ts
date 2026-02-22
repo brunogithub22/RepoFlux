@@ -1,8 +1,8 @@
 // app/api/tasks/actions.ts
-
 import { languages,images,posts,youtube_video,link,github,code,postImage,textBlock,postVideo, feedback } from "@/src/db/schema";
 import { addRow,deleteRow,searchItem,getAllRows,getItem } from "@/src/db/admin/dbOperation";
-import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube } from "@/components/intefaces";
+import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube, post } from "@/components/intefaces";
+import { UUID } from "crypto";
 
 export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
 
@@ -95,7 +95,11 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
   },
   newPage: async (data) =>{
 
-    console.log("newPage....")
+    
+    const Data = await searchItem(posts,{title: data.title});
+    if(Data){
+        return {message: "Post already exsist"};
+    }
 
     const check = {link: true,list: true, image: true,textBlock: true, textArea: true,youtube: true,code: true, github: true}; 
     const date:string = new Date().toDateString();
@@ -232,15 +236,70 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
   },
 
   getPosts: async ()=>{
-    const result = await getItem(posts,{});
-    if(result.length > 0){
-        return result;
-    }else{
-        return [];
+
+    const result: post[] = [];
+    const getPost = async (postData: any) =>{
+        const Post:post = {
+            id: postData.id, 
+            type: postData.type,
+            title: postData.title, 
+            description: postData.description,
+            date: postData.date,
+            content: [],
+            published: postData.published,
+            languages: postData.languages
+        }
+
+        //const contentCheck = {image: false, list: false, link: false, youtube: false, textBlock: false,textArea: false,code: false,github: false};
+        const getBlocks = async (idPost: UUID) =>{
+           
+           const blocks:Block[] = [];
+
+           const imagePost = await getItem(postImage,{postId: idPost}); 
+           const youtubePost = await getItem(postVideo,{postId: idPost});
+           const codePost = await getItem(code,{postId: idPost});
+           const repositoryPost = await getItem(github,{postId: idPost});
+           const listPost = await getItem(link,{postId: idPost,type: "list"});
+           const linkPost = await getItem(link,{postId: idPost,type: "link"});
+           
+           if(imagePost.length > 0){
+            console.log(imagePost);
+           }
+           if(youtubePost.length > 0){
+            console.log(youtubePost);
+           }
+           if(codePost.length > 0){
+            console.log(codePost);
+           }
+           if(repositoryPost.length > 0){
+            console.log(repositoryPost);
+           }
+           if(linkPost.length > 0){
+            console.log(linkPost);
+           }
+           if(listPost.length > 0){
+            console.log(listPost);
+           }
+
+           return blocks
+        }
+
+        Post.content = await getBlocks(Post.id);
+        console.log(Post);
     }
+ 
+    const Data = await getItem(posts,{});
+    Data.map((value) =>{
+        console.log()
+        getPost(value);
+    })
+
+    return Data;
   },
 
-  getPost: async ()=>{},
+  removePost: async (data) =>{
+
+  },
 
   getFeedbacks: async ()=>{
     const result = await getItem(feedback,{});

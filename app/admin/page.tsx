@@ -27,15 +27,30 @@ export default function AdminDashboard() {
   const supabase = getSupabaseBrowserClient();
   const [activeTab, setActiveTab] = useState('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile state
-  const [post,setPosts] = useState<post>();
+  const [selectedPost,setSelectedPosts] = useState<post>();
 
-  const VIEWS: Record<string, JSX.Element> = {
-    overview: <Overview onNavigate={setActiveTab}/>,
-    post: <Post onNavigate={setActiveTab}/>,
-    content: <Content onNavigate={setActiveTab}/>,
-    language: <Language onNavigate={setActiveTab}/>,
-    modify: <ModifyPost onNavigate={setActiveTab} />,
-    view: <ViewPost onNavigate={setActiveTab} />
+  // Use a function to change the tab AND the post at the same time
+  const handleViewPost = (postData: post) => {
+    setSelectedPosts(postData);
+    setActiveTab('view');
+  };
+
+  // Turn VIEWS into a function so it can access 'selectedPost'
+  const renderView = () => {
+    switch (activeTab) {
+      case 'overview':
+        return <Overview onNavigate={setActiveTab} onViewPost={handleViewPost} />;
+      case 'view':
+        return <ViewPost Post={selectedPost} onNavigate={setActiveTab} />;
+      case 'modify':
+        return <ModifyPost Post={selectedPost} onNavigate={setActiveTab} />;
+      case 'post':
+        return <Post onNavigate={setActiveTab}/>;
+      case 'content':
+        return <Content onNavigate={setActiveTab}/>;
+      case 'language':
+        return <Language onNavigate={setActiveTab}/>;
+    }
   };
 
   const NAV_ITEMS = [
@@ -130,7 +145,7 @@ export default function AdminDashboard() {
       {/* MAIN CONTENT */}
       <main className="flex-1 overflow-auto pt-16 lg:pt-0">
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
-           {VIEWS[activeTab]}
+         {renderView()} {/* Call the function here */}
         </div>
       </main>
     </div>
