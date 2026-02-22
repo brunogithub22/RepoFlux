@@ -1,12 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { FileText, Eye, MessageSquare, Plus, LucideIcon,ShieldXIcon,ExternalLink,Edit3,Trash2 } from 'lucide-react';
-import { Block, NavigationProps, Post } from '@/components/intefaces';
+import { Block, NavigationProps, post } from '@/components/intefaces';
 
 // --- Main Component: Overview (Self-Fetching) ---
 export default function Overview({ onNavigate }: NavigationProps) {
   // 1. Initialize state inside the component
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<post[]>([]);
   const [loading, setLoading] = useState(true);
   const [result,setResult] = useState(false);
 
@@ -24,6 +24,7 @@ export default function Overview({ onNavigate }: NavigationProps) {
         if (response.ok) {
 
           setPosts(result.result);
+          console.log(result.result)
           setResult(true);
         }
         setLoading(false);

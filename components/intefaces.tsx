@@ -71,9 +71,10 @@ export interface CodeInfo{
   code: string;
 }
 
-export interface Post{
+export interface post{
   id: UUID;
   published: boolean;
+  date: string;
   type: string;
   title: string;
   description: string;

@@ -9,6 +9,7 @@ import Post from '@/components/admin/Post';
 import Language from '@/components/admin/Language';
 import ModifyPost from '@/components/admin/Post/ModifyPost';
 import ViewPost from '@/components/admin/Post/ViewPost';
+import {post} from "@/components/intefaces"
 import { 
   LayoutDashboard, 
   LogOut,
@@ -26,14 +27,15 @@ export default function AdminDashboard() {
   const supabase = getSupabaseBrowserClient();
   const [activeTab, setActiveTab] = useState('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile state
+  const [post,setPosts] = useState<post>();
 
   const VIEWS: Record<string, JSX.Element> = {
     overview: <Overview onNavigate={setActiveTab}/>,
     post: <Post onNavigate={setActiveTab}/>,
     content: <Content onNavigate={setActiveTab}/>,
     language: <Language onNavigate={setActiveTab}/>,
-    view: <ModifyPost onNavigate={setActiveTab} />,
-    modify: <ViewPost onNavigate={setActiveTab} />
+    modify: <ModifyPost onNavigate={setActiveTab} />,
+    view: <ViewPost onNavigate={setActiveTab} />
   };
 
   const NAV_ITEMS = [
@@ -87,31 +89,22 @@ export default function AdminDashboard() {
             return (
               <button 
                 key={item.id}
-                disabled={isDisabled}
-      onClick={() => {
-        if (isDisabled) return; // Safety check
-        setActiveTab(item.id);
-        setIsMenuOpen(false);
-      }}
-      className={`flex items-center gap-3 w-full p-3 rounded-xl font-bold text-sm transition-all border ${
-        isDisabled 
-          ? "bg-zinc-900/50 border-zinc-800/50 text-zinc-600 cursor-not-allowed opacity-60 filter saturate-50" 
-          : activeTab === item.id 
-            ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-900/20 cursor-pointer" 
-            : "text-zinc-400 border-transparent hover:bg-zinc-900 hover:text-zinc-100 cursor-pointer"
-      }`}
-    >
-      <item.icon size={18} className={isDisabled ? "text-zinc-700" : ""} /> 
-      {item.label}
-      
-      {/* Optional: Add a small "Lock" icon or "Soon" badge */}
-      {isDisabled && (
-        <span className="ml-auto text-[10px] bg-zinc-800 px-1.5 py-0.5 rounded uppercase tracking-tighter">
-          Locked
-        </span>
-      )}
-    </button>
-  );
+                disabled={isDisabled} 
+                onClick={() => {
+                if (isDisabled) return; // Safety check
+                  setActiveTab(item.id);
+                  setIsMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 ${isDisabled ? "cursor-not-allowed": ""} w-full p-3 rounded-xl font-bold text-sm transition-all border ${
+                   activeTab === item.id 
+                      ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-900/20 cursor-pointer" 
+                      : "text-zinc-400 border-transparent hover:bg-zinc-900 hover:text-zinc-100 cursor-pointer"
+                }`}
+              >
+                <item.icon size={18} className={isDisabled ? "text-zinc-700" : ""} /> 
+                {item.label}
+              </button>
+            );
             
           })}
         </nav>

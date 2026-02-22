@@ -1,13 +1,14 @@
-import { LanguageType, Post } from "@/components/intefaces";
+import { LanguageType, post } from "@/components/intefaces";
 import {Calendar,Globe} from 'lucide-react';
+import { useEffect } from "react";
 
-export default function ViewPost({Post, onNavigate }: {Post?: Post, onNavigate?: (tab: string) => void;}){
+export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?: (tab: string) => void;}){
 
     const lang: LanguageType[] = Array.isArray(Post?.languages) ? Post?.languages: [];
-
+    
     return(
         <div className="max-w-4xl mx-auto py-10 px-6 bg-zinc-950 text-zinc-100 min-h-screen">
-
+          
           {/* 2. Header Section */}
           <header className="space-y-6 mb-12">
             <div className="flex items-center gap-3">
@@ -17,7 +18,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: Post, onNavigate?:
               <div className="h-1 w-1 rounded-full bg-zinc-700" />
                 <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-medium">
                   <Calendar size={14} />
-                   {new Date().toLocaleDateString()}
+                  {Post?.date}
           </div>
         </div>
 
