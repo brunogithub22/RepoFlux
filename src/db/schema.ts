@@ -9,6 +9,7 @@ export const posts = pgTable('posts', {
   languages: jsonb('languages').$type<{id: string, language: string}[]>(),
   isPublished: boolean('published').default(false).notNull(),
   date: date('date'),
+  numContent: integer('num_content').notNull()
 });
 
 export const textBlock = pgTable('textBlock', {

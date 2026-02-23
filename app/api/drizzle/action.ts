@@ -106,7 +106,15 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
     const id_post = crypto.randomUUID();
 
     try{
-        const addPage = await addRow(posts,{ id: id_post,title: data.title ,type: data.category, description: data.description,date: date, languages: data.language });
+        const addPage = await addRow(posts,{ 
+            id: id_post,
+            title: data.title,
+            type: data.category, 
+            description: data.description,
+            date: date, 
+            languages: data.language,
+            numContent: data.cont 
+        });
         if(!Array.isArray(data.content)){return {message: "not array"}}
        // Use for...of to ensure each block is saved before moving to the next
         data.content.map(async (item: Block,index:number)=>{
@@ -237,64 +245,84 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
 
   getPosts: async ()=>{
 
-    const result: post[] = [];
-    const getPost = async (postData: any) =>{
-        const Post:post = {
-            id: postData.id, 
-            type: postData.type,
-            title: postData.title, 
-            description: postData.description,
-            date: postData.date,
-            content: [],
-            published: postData.published,
-            languages: postData.languages
+    const getBlocks = async (idPost: UUID, cont: number) => {
+      const blocks: Block[] = [];
+
+      for (let indexBlock = 0; indexBlock < cont; indexBlock++) {
+        const item: any[] = [];
+        const block: Block = { type: "", content: [] };
+
+        // 1. Fetch the relations
+        const imagePost = await getItem(postImage, { postId: idPost, idBlock: indexBlock });
+        const listPost = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "list" });
+        const linkPost = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "link" });
+        const youtubePost = await getItem(postVideo, { postId: idPost, idBlock: indexBlock });
+
+        const listOfImage = Array.isArray(imagePost) ? imagePost : [];
+        const listOflists = Array.isArray(listPost) ? listPost : [];
+        const listOflinks = Array.isArray(linkPost) ? linkPost : [];
+        const listOfyoutube = Array.isArray(youtubePost) ? youtubePost : [];
+
+        // 2. FIX: Use for...of instead of .map() to respect 'await'
+        if (listOfImage.length > 0) {
+          block.type = "image";
+          for (const image of listOfImage) {
+            const imageInfo = await getItem(images, { id: image.imageId });
+            if (imageInfo.length === 1) {
+              item.push({
+                id: imageInfo[0].id,
+                link: imageInfo[0].link,
+                text: image.text
+              } as Gallery);
+            }
+          }
         }
 
-        //const contentCheck = {image: false, list: false, link: false, youtube: false, textBlock: false,textArea: false,code: false,github: false};
-        const getBlocks = async (idPost: UUID) =>{
-           
-           const blocks:Block[] = [];
-
-           const imagePost = await getItem(postImage,{postId: idPost}); 
-           const youtubePost = await getItem(postVideo,{postId: idPost});
-           const codePost = await getItem(code,{postId: idPost});
-           const repositoryPost = await getItem(github,{postId: idPost});
-           const listPost = await getItem(link,{postId: idPost,type: "list"});
-           const linkPost = await getItem(link,{postId: idPost,type: "link"});
-           
-           if(imagePost.length > 0){
-            console.log(imagePost);
-           }
-           if(youtubePost.length > 0){
-            console.log(youtubePost);
-           }
-           if(codePost.length > 0){
-            console.log(codePost);
-           }
-           if(repositoryPost.length > 0){
-            console.log(repositoryPost);
-           }
-           if(linkPost.length > 0){
-            console.log(linkPost);
-           }
-           if(listPost.length > 0){
-            console.log(listPost);
-           }
-
-           return blocks
+        if (listOflinks.length > 0) {
+          block.type = "link";
+          for (const link of listOflinks) {
+            
+          }
         }
 
-        Post.content = await getBlocks(Post.id);
-        console.log(Post);
+        if (listOflists.length > 0) {
+          block.type = "list";
+          for (const list of listOflists) {
+            
+          }
+        }
+
+        block.content = item;
+        blocks.push(block);
     }
- 
-    const Data = await getItem(posts,{});
-    Data.map((value) =>{
-        console.log()
-        getPost(value);
-    })
 
-    return Data;
+    return blocks;
+};
+
+    // 1. Refactor getPost to RETURN the object instead of pushing to an external array
+    const getPost = async (postData: any): Promise<post> => {
+      return {
+        id: postData.id,
+        type: postData.type,
+        title: postData.title,
+        description: postData.description,
+        date: postData.date,
+        content: await getBlocks(postData.id, postData.numContent), 
+        published: postData.isPublished,
+        languages: postData.languages,
+        cont: postData.numContent,
+      };
+    };
+
+    const Data = await getItem(posts, {});
+
+    const result: post[] = await Promise.all(
+      Data.map((value) => getPost(value))
+    );
+
+    console.log("Full Post Data:", JSON.stringify(result, null, 2));
+
+    return result;
   },
 
   removePost: async (data) =>{

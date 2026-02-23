@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
     try {
-        const { blog, title, description, category, postLanguages } = await request.json();
+        const { blog, title, description, category, postLanguages,cont } = await request.json();
         const actionName = "newPage";
         const { origin } = new URL(request.url);
 
@@ -14,7 +14,14 @@ export async function POST(request: Request) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 actionName,
-                payload: { title: title, description: description, content: blog, category: category,language: postLanguages }
+                payload: { 
+                    title: title, 
+                    description: description, 
+                    content: blog, 
+                    category: category,
+                    language: postLanguages,
+                    cont:cont 
+                }
             }),
         });
 

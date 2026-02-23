@@ -63,7 +63,7 @@ export default function LoadImage({ onClose, onSave, isItem }: { onClose: () => 
                     {IMAGES.length === 0 ? (
                       <div>
                         <span className="text-sm font-medium border-b border-zinc-800 group-hover:border-zinc-400 transition-all">
-                          Empty, go to Content Upload 
+                          Empty, Add new Images
                         </span>     
                       </div>
                     ): (

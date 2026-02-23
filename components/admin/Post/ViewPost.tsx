@@ -1,10 +1,28 @@
-import { LanguageType, post } from "@/components/intefaces";
-import {Calendar,Globe} from 'lucide-react';
-import { useEffect } from "react";
+import { LanguageType, post,Block, Gallery } from "@/components/intefaces";
+import { Calendar,Globe,ChevronLeft,ChevronRight } from 'lucide-react';
+import { CldImage } from 'next-cloudinary';
+import { useState } from "react";
 
 export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?: (tab: string) => void;}){
 
     const lang: LanguageType[] = Array.isArray(Post?.languages) ? Post?.languages: [];
+    const content: Block[] = Array.isArray(Post?.content) ? Post?.content : [];
+    const [selectedIdx, setSelectedIdx] = useState<number>(0);
+
+    const nextImage = async (length: number) => {
+      setSelectedIdx((prev) => {
+        const nextIdx = (prev + 1) % length;
+        return nextIdx;
+      });
+    };
+
+    // Helper to handle the "Previous" logic
+    const prevImage = async (length: number) => {
+      setSelectedIdx((prev) => {
+        const nextIdx = (prev - 1 + length) % length;
+        return nextIdx;
+      });
+    };
 
     if (!Post) return <div>No post selected. Please go back to Overview.</div>;
     
@@ -69,7 +87,73 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
               </div>
             </div>
           </aside>
+
+
         </div>
+        <div className="w-full flex flex-col justify-center py-5">
+            {content.map((block, index) => {
+              const blockKey = `block-${index}`;
+
+              switch (block.type) {
+                case 'image':
+                  const listImage:Gallery[] = block.content as Gallery[]; 
+                  const activeImage: string = listImage.length > 1 
+                    ? listImage[selectedIdx].link.toString() 
+                    : listImage[0].link.toString();
+                  const currentIndex = listImage.findIndex(img => img.link === activeImage);
+                  const currentCaption = listImage[currentIndex]?.text || "";
+                  return (
+                    <div key={blockKey} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-800 bg-zinc-950 mb-2">
+                      {listImage.length > 1 && (
+                        <>
+                          <div className="absolute inset-0 flex items-center justify-between p-4 z-20 pointer-events-none">
+                            <button 
+                              onClick={() => prevImage(listImage.length)} 
+                              className="pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all active:scale-90"
+                            >
+                              <ChevronLeft size={24} />
+                            </button>
+
+                            <button 
+                              onClick={() => nextImage(listImage.length)} 
+                              className="pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all active:scale-90"
+                            >
+                              <ChevronRight size={24} />
+                            </button>
+                          </div>
+
+                          <div className="absolute top-4 right-4 z-20 px-3 py-1 bg-black/50 backdrop-blur-xl rounded-full border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest">
+                            {currentIndex + 1} / {listImage.length}
+                          </div>
+                        </>
+                      )}
+
+                      <div key={activeImage} className="relative flex flex-col items-center">
+                        <CldImage
+                          src={activeImage}
+                          alt="Gallery Image"
+                          width={800}
+                          height={600}
+                          crop={"fit"}
+                          className="w-full h-auto object-contain max-h-[70vh]"
+                          sizes="(max-width: 768px) 100vw, 800px"
+                        />
+    
+                        <div className="w-full p-4 bg-zinc-900/50 border-t border-zinc-800">
+                          <p className="text-sm text-zinc-400 text-center italic">
+                            {currentCaption || "No description provided"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+
+                default:
+                  return <div key={blockKey} className="text-zinc-500 text-xs">Unsupported block type: {block.type}</div>;
+              }
+            })}
+        </div>
+        
       </div>
     );   
 

@@ -185,7 +185,8 @@ export default function Post({ onNavigate }: NavigationProps) {
           description: description.trim() ? description : "",
           category: category,
           postLanguages: Array.isArray(mylanguages) ? mylanguages: [],
-          blog: Array.isArray(blocks) ? blocks: []
+          blog: Array.isArray(blocks) ? blocks: [],
+          cont: Array.isArray(blocks) ? blocks.length: 0
         }),
       });
   
@@ -691,7 +692,7 @@ export default function Post({ onNavigate }: NavigationProps) {
                         placeholder="Write a caption for this image..."
                         value={
                           typeof (blocks[index].content as Gallery[])[selectedIdx] === 'object'  
-                            ? ((blocks[index].content as Gallery[])[selectedIdx]).text || "" 
+                            ? ((blocks[index].content as Gallery[])[selectedIdx]).text
                             : ""
                         }
                         rows={2}

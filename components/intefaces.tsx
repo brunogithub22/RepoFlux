@@ -79,5 +79,6 @@ export interface post{
   title: string;
   description: string;
   languages: LanguageType[];
-  content: Block[]
+  content: Block[],
+  cont: number;
 }
