@@ -249,7 +249,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
       const blocks: Block[] = [];
 
       for (let indexBlock = 0; indexBlock < cont; indexBlock++) {
-        const item: any[] = [];
+        let item: Gallery[] | Item[] | string | CodeInfo | GitHubInfo = "";
         const block: Block = { type: "", content: [] };
 
         // 1. Fetch the relations
@@ -257,47 +257,141 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         const listPost = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "list" });
         const linkPost = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "link" });
         const youtubePost = await getItem(postVideo, { postId: idPost, idBlock: indexBlock });
+        const textBlockPost = await getItem(textBlock, { postId: idPost, idBlock: indexBlock, type: "textBlock" });
+        const textAreaBlockPost = await getItem(textBlock, { postId: idPost, idBlock: indexBlock, type: "textAreaBlock" });  
+        const githubPost = await getItem(github, { postId: idPost, idBlock: indexBlock});  
+        const codePost = await getItem(code, { postId: idPost, idBlock: indexBlock });  
 
+        
         const listOfImage = Array.isArray(imagePost) ? imagePost : [];
         const listOflists = Array.isArray(listPost) ? listPost : [];
         const listOflinks = Array.isArray(linkPost) ? linkPost : [];
         const listOfyoutube = Array.isArray(youtubePost) ? youtubePost : [];
+        const listOfTextBlock = Array.isArray(textBlockPost) ? textBlockPost : [];
+        const listOfTextAreaBlock = Array.isArray(textAreaBlockPost) ? textAreaBlockPost : [];
+        const listOfgithub = Array.isArray(githubPost) ? githubPost : [];
+        const listOfcode = Array.isArray(codePost) ? codePost : [];
+        
+        console.log(listOflists.length);
 
         // 2. FIX: Use for...of instead of .map() to respect 'await'
         if (listOfImage.length > 0) {
           block.type = "image";
+          const galleryItems: Gallery[] = [];
           for (const image of listOfImage) {
             const imageInfo = await getItem(images, { id: image.imageId });
             if (imageInfo.length === 1) {
-              item.push({
+              galleryItems.push({
                 id: imageInfo[0].id,
                 link: imageInfo[0].link,
                 text: image.text
               } as Gallery);
             }
           }
+          item = galleryItems;
         }
 
         if (listOflinks.length > 0) {
+          let index: number = 0;
           block.type = "link";
-          for (const link of listOflinks) {
-            
+          const LinkItems: Item[] = [];
+          for (const linkItem of listOflinks) {
+            const linkInfo = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "link", index: index });
+            const imageInfo = await getItem(images, { id: linkItem.imageId });
+            if (imageInfo.length === 1) {
+              
+              if (linkInfo.length === 1) {
+                LinkItems.push({
+                  name: linkInfo[0].name,
+                  icon: {
+                      id: imageInfo[0].id,
+                      link: imageInfo[0].link
+                    } as Gallery,
+                  link: linkInfo[0].link
+                } as Item)
+              }
+            } 
+            index++;
           }
+          item = LinkItems;
         }
 
         if (listOflists.length > 0) {
+          let index: number = 0;
           block.type = "list";
-          for (const list of listOflists) {
-            
+          const ListItems: Item[] = [];
+          for (const listItem of listOflists) {
+            const listInfo = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "list", index: index });
+            const imageInfo = await getItem(images, { id: listItem.imageId });
+            console.log("list: ",listItem, "list info: ", listInfo); 
+            if (imageInfo.length === 1) {
+              
+              if (listInfo.length === 1) {
+                ListItems.push({
+                  name: listInfo[0].name,
+                  icon: {
+                      id: imageInfo[0].id,
+                      link: imageInfo[0].link
+                    } as Gallery,
+                  link: listInfo[0].link
+                } as Item)
+              }
+            } 
+            index++;
           }
+          item = ListItems;
+        }
+
+        if(listOfyoutube.length > 0){
+            block.type = "youtube"
+            const YoutubeItems: Gallery[] = [];
+            const youtubeInfo = await getItem(youtube_video, { id: listOfyoutube[0].videoId });
+            if(youtubeInfo.length === 1){
+                YoutubeItems.push({
+                id: youtubeInfo[0].id,
+                link: youtubeInfo[0].link,
+                text: listOfyoutube[0].text
+              } as Gallery);
+            }
+            item = YoutubeItems;
+        }
+
+        if(listOfTextAreaBlock.length > 0){
+            block.type = "textBlock"
+            item = listOfTextAreaBlock[0].text;
+        }
+
+        if(listOfTextBlock.length > 0){
+            block.type = "textAreaBlock"
+            item = listOfTextBlock[0].text;
+        }
+
+        if(listOfgithub.length > 0){
+            block.type = "github";
+            const GithubItems: GitHubInfo = {
+                link: listOfgithub[0].link,
+                text: listOfgithub[0].text,
+                description: listOfgithub[0].description
+            };
+            item = GithubItems;
+        
+        }
+
+        if(listOfcode.length > 0){
+            block.type = "code";
+            const Code: CodeInfo = {
+                code: listOfcode[0].code,
+                fileName: listOfcode[0].filename
+            }
+            item = Code;
         }
 
         block.content = item;
         blocks.push(block);
-    }
+     }
 
-    return blocks;
-};
+     return blocks;
+    };
 
     // 1. Refactor getPost to RETURN the object instead of pushing to an external array
     const getPost = async (postData: any): Promise<post> => {

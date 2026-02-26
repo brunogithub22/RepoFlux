@@ -594,10 +594,22 @@ export default function Post({ onNavigate }: NavigationProps) {
 
               {block.type === "youtube" && (()=>{
                 const contents = block.content as Gallery[];
+                const rawLink = contents[0].link;
+
+                const getEmbedUrl = (url: string) => {
+                  if (url.includes("watch?v=")) {
+                    return url.replace("watch?v=", "embed/");
+                  }
+                  if (url.includes("youtu.be/")) {
+                    return url.replace("youtu.be/", "youtube.com/embed/");
+                  }
+                  return url;
+                };
+
                 return(
                   <div className="rounded-xl overflow-hidden border border-zinc-800">
                     <iframe 
-                     src={contents[0].link}  
+                     src={getEmbedUrl(rawLink)}  
                      className="w-full aspect-video rounded-xl"
                     />
                     <textarea
