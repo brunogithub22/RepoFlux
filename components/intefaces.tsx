@@ -82,3 +82,9 @@ export interface post{
   content: Block[],
   cont: number;
 }
+
+export interface BasePost{
+  id: UUID;
+  title: string;
+  published: boolean;
+}

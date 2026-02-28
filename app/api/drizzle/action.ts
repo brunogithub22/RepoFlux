@@ -1,7 +1,7 @@
 // app/api/tasks/actions.ts
 import { languages,images,posts,youtube_video,link,github,code,postImage,textBlock,postVideo, feedback } from "@/src/db/schema";
-import { addRow,deleteRow,searchItem,getAllRows,getItem } from "@/src/db/admin/dbOperation";
-import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube, post } from "@/components/intefaces";
+import { addRow,deleteRow,searchItem,getAllRows,getItem,modifyRow } from "@/src/db/admin/dbOperation";
+import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube, BasePost,post, LanguageType } from "@/components/intefaces";
 import { UUID } from "crypto";
 
 export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
@@ -245,6 +245,26 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
 
   getPosts: async ()=>{
 
+    // 1. Refactor getPost to RETURN the object instead of pushing to an external array
+    const getPost = async (postData: any): Promise<BasePost> => {
+      return {
+        id: postData.id,
+        title: postData.title,
+        published: postData.isPublished,
+      };
+    };
+
+    const Data = await getItem(posts, {});
+
+    const result: BasePost[] = await Promise.all(
+      Data.map((value) => getPost(value))
+    );
+
+    return result;
+  },
+
+  getPost: async (data) =>{
+
     const getBlocks = async (idPost: UUID, cont: number) => {
       const blocks: Block[] = [];
 
@@ -272,8 +292,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         const listOfgithub = Array.isArray(githubPost) ? githubPost : [];
         const listOfcode = Array.isArray(codePost) ? codePost : [];
         
-        console.log(listOflists.length);
-
+        
         // 2. FIX: Use for...of instead of .map() to respect 'await'
         if (listOfImage.length > 0) {
           block.type = "image";
@@ -323,7 +342,6 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
           for (const listItem of listOflists) {
             const listInfo = await getItem(link, { postId: idPost, idBlock: indexBlock, type: "list", index: index });
             const imageInfo = await getItem(images, { id: listItem.imageId });
-            console.log("list: ",listItem, "list info: ", listInfo); 
             if (imageInfo.length === 1) {
               
               if (listInfo.length === 1) {
@@ -356,14 +374,14 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
             item = YoutubeItems;
         }
 
-        if(listOfTextAreaBlock.length > 0){
+        if(listOfTextBlock.length > 0){
             block.type = "textBlock"
-            item = listOfTextAreaBlock[0].text;
+            item = listOfTextBlock[0].text;
         }
 
-        if(listOfTextBlock.length > 0){
+        if(listOfTextAreaBlock.length > 0){
             block.type = "textAreaBlock"
-            item = listOfTextBlock[0].text;
+            item = listOfTextAreaBlock[0].text;
         }
 
         if(listOfgithub.length > 0){
@@ -393,8 +411,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
      return blocks;
     };
 
-    // 1. Refactor getPost to RETURN the object instead of pushing to an external array
-    const getPost = async (postData: any): Promise<post> => {
+    const get = async (postData: any): Promise<post> => {
       return {
         id: postData.id,
         type: postData.type,
@@ -408,19 +425,50 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
       };
     };
 
-    const Data = await getItem(posts, {});
-
+    const Data = await getItem(posts, {id: data.id});
     const result: post[] = await Promise.all(
-      Data.map((value) => getPost(value))
+      Data.map((value) => get(value))
     );
 
-    console.log("Full Post Data:", JSON.stringify(result, null, 2));
-
+    console.dir(result, { depth: null });
     return result;
   },
 
   removePost: async (data) =>{
+    
+    const remove = async (postData: any) => {
+        // We return the Promise.all so the parent can await it
+        return await Promise.all([
+            deleteRow(postImage, { postId: postData.id }),
+            deleteRow(link, { postId: postData.id, type: "list" }),
+            deleteRow(link, { postId: postData.id, type: "link" }),
+            deleteRow(postVideo, { postId: postData.id }),
+            deleteRow(textBlock, { postId: postData.id, type: "textBlock" }),
+            deleteRow(textBlock, { postId: postData.id, type: "textAreaBlock" }),
+            deleteRow(github, { postId: postData.id }),
+            deleteRow(code, { postId: postData.id }),
+            deleteRow(posts, { id: postData.id })
+        ]);
+    };
 
+    try {
+        const Data = await getItem(posts, { id: data.post.id });
+        
+        if (Data.length === 0) {
+            console.warn("No post found to delete.");
+            return { success: false, message: "Post not found" };
+        }
+
+        // FIX: Use Promise.all with map to wait for ALL deletions for ALL items
+        await Promise.all(Data.map((value) => remove(value)));
+
+        console.log("All deletions completed successfully!");
+        return { success: true };
+
+    } catch (error) {
+        console.error("Deletion failed:", error);
+        return { success: false, error: error };
+    }
   },
 
   getFeedbacks: async ()=>{
@@ -430,6 +478,38 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
     }else{
         return [];
     }
+  },
+
+  publish: async (data) =>{
+     
+    const Data: boolean = data.publish;
+    const result = await modifyRow(posts,{isPublished: Data});
+    console.log(result , "  ", Data);
+    return {message: result, data: data};
+  },
+
+  checkImage: async (data) =>{
+
+    const Images = await getItem(postImage,{imageId: data.image});
+    if(Images.length>0){
+        return {message: true};
+    }else{
+        return {message: false};
+    }
+
+  },
+  checkLanguage: async (data) =>{
+
+    const item = await getItem(posts,{});
+    const Posts = Array.isArray(item) ? item : [];
+
+    const result = Posts.some((post) => 
+       post.languages.some((language: LanguageType) => language.language === data.language)
+    );
+
+
+    return {message: !result};
+    
   },
   
   modifyPost: async (data)=>{

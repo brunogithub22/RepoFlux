@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState,useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Maximize2, Trash2,Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Trash2,Loader2,CheckCircle2,CircleAlert,ShieldXIcon } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
 import {GalleryImage} from "@/components/intefaces"
 
@@ -13,6 +13,9 @@ export default function ViewContent() {
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loading, setLoading] = useState(false);  
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [message, setMessage] = useState("");
+  const [state, setState] = useState<"idle" | "warning" | "success" | "error">("idle");
     
 
   const fetchImages = useCallback(async () => {
@@ -44,8 +47,41 @@ export default function ViewContent() {
   }, []);
 
   async function handleDelete(id: string) {
-    const actionName = "removeImage"; // The "function name" your API expects
 
+    let test = false;
+    let actionName = "checkImage";
+    try {  
+      const response = await fetch('/api/drizzle/helper/admin', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          actionName: actionName,
+          payload: { image:  id} 
+        }),
+      });
+  
+      const result = await response.json();
+    
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to api ");
+      }
+
+      if(result.result.message){
+        test = true;
+      }else{
+        setMessage("This image is used in a post");
+        setState("warning");
+        setShowSuccess(true);
+      }
+      
+    } catch (error) {
+      console.error("Error calling API:", error);
+    }
+
+    actionName = "removeImage"; // The "function name" your API expects
+    if(test){
       try {  
 
         await Promise.all([
@@ -83,6 +119,7 @@ export default function ViewContent() {
       } catch (error) {
         console.error("Error calling API:", error);
       }
+    }
   }
 
   useEffect(()=>{
@@ -220,6 +257,41 @@ export default function ViewContent() {
                   {isDeleting ? <Loader2 className="animate-spin" size={18} /> : "Delete"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM SUCCESS MODAL */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+            <div className="flex flex-col items-center text-center">
+
+              {state === "success"  ? (
+                <div className="bg-green-500/10 p-4 rounded-full mb-4">
+                  <CheckCircle2 size={48} className="text-green-500" />
+                </div>
+              ):(
+                state === "warning" ?(
+                  <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
+                    <CircleAlert size={48} className="text-yellow-500" />
+                  </div>
+                ):(
+                  <div className="bg-red-500/10 p-4 rounded-full mb-4">
+                    <ShieldXIcon size={48} className="text-red-500" />
+                  </div>
+                )
+              )}
+              
+              <h3 className="text-xl font-bold text-white mb-2">{message}</h3>
+              
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+              >
+                Continue
+              </button>
             </div>
           </div>
         </div>

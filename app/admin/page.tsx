@@ -9,7 +9,7 @@ import Post from '@/components/admin/Post';
 import Language from '@/components/admin/Language';
 import ModifyPost from '@/components/admin/Post/ModifyPost';
 import ViewPost from '@/components/admin/Post/ViewPost';
-import {post} from "@/components/intefaces"
+import {BasePost} from "@/components/intefaces"
 import { 
   LayoutDashboard, 
   LogOut,
@@ -27,10 +27,10 @@ export default function AdminDashboard() {
   const supabase = getSupabaseBrowserClient();
   const [activeTab, setActiveTab] = useState('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile state
-  const [selectedPost,setSelectedPosts] = useState<post>();
+  const [selectedPost,setSelectedPosts] = useState<BasePost>();
 
   // Use a function to change the tab AND the post at the same time
-  const handleViewPost = (postData: post) => {
+  const handleViewPost = (postData: BasePost) => {
     setSelectedPosts(postData);
     setActiveTab('view');
   };

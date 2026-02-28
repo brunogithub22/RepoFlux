@@ -1,12 +1,61 @@
-import { LanguageType, post,Block, Gallery,Item, GitHubInfo, CodeInfo } from "@/components/intefaces";
+import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post } from "@/components/intefaces";
 import { Calendar,Globe,ChevronLeft,ChevronRight,ShoppingBag,Github,ExternalLink,Check,Copy,Code2 } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?: (tab: string) => void;}){
+export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNavigate?: (tab: string) => void;}){
 
-    const lang: LanguageType[] = Array.isArray(Post?.languages) ? Post?.languages: [];
-    const content: Block[] = Array.isArray(Post?.content) ? Post?.content : [];
+  const [post,setPost] = useState<post>();
+  const [lang,setLang] = useState<LanguageType[]>([]);
+  const [content,setContent] = useState<Block[]>([]);
+  const [isLoading, setIsLoading] = useState(true); 
+
+  useEffect(() => {
+    const getPost = async () => {
+      const actionName = "getPost";
+      try {
+        const response = await fetch('/api/drizzle/helper/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // Use the ID from your initial source (e.g., props or URL params)
+          body: JSON.stringify({ actionName, payload: { id: Post?.id } }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.result && result.result.length > 0) {
+          const data: post = result.result[0];
+          
+          // 1. Update the state for the UI
+          setPost(data);
+
+          if (!data) {
+            console.log("Error: Data is empty");
+            return;
+          }
+
+          // Set other states using the fresh 'data' object
+          setLang(data.languages || []);
+          setContent(data.content || []);
+        
+          console.log("Post data loaded successfully:", data);
+        } else {
+          console.error("Post not found or API error");
+        }
+      } catch (error) {
+        console.error("Error fetching post:", error);
+      }
+      finally{
+        setIsLoading(false);
+      }
+    };
+
+    // Only run if Post?.id exists to avoid unnecessary empty API calls
+    if (Post?.id) {
+      getPost();
+    }
+  }, [Post?.id]); // Added dependency to re-run if the ID changes
+
     const [selectedIdx, setSelectedIdx] = useState<number>(0);
     const [copied, setCopied] = useState(false);
 
@@ -32,6 +81,15 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
     };
 
     if (!Post) return <div>No post selected. Please go back to Overview.</div>;
+
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-black">
+         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+         <p className="ml-4 text-white">Loading your post...</p>
+        </div>
+      ); 
+    }
     
     return(
       <div className="max-w-4xl mx-auto py-10 px-6 bg-zinc-950 text-zinc-100 min-h-screen">
@@ -40,12 +98,12 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
           <header className="space-y-6 mb-12">
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-widest border border-blue-500/20">
-                {Post?.type}
+                {post?.type}
               </span>
               <div className="h-1 w-1 rounded-full bg-zinc-700" />
               <div className="flex items-center gap-1.5 text-zinc-500 text-xs font-medium">
                 <Calendar size={14} />
-                {Post?.date}
+                {post?.date}
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className={Post?.published ? "text-emerald-400" : "text-amber-400"}>
@@ -65,7 +123,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
             <section>
               <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Description</h3>
               <p className="text-zinc-300 text-lg leading-relaxed whitespace-pre-wrap">
-                {Post?.description}
+                {post?.description}
               </p>
             </section>
           </div>
@@ -206,8 +264,8 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
                             <CldImage
                               src={item.icon.link}
                               alt={item.name}
-                              width={400}
-                              height={400}
+                              width={80}
+                              height={80}
                               crop="fit"
                               className="object-cover h-auto w-auto "
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -264,7 +322,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
 
                 case 'textBlock':
                   return(
-                    <div key={blockKey} className="w-full max-w-4xl mx-auto pt-8 pb-2 mt-12">
+                    <div key={blockKey} className="w-full max-w-4xl mx-auto pt-8 ">
                       <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                         {block.content as string}
                       </h2>
@@ -273,7 +331,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
 
                 case 'textAreaBlock':
                   return(
-                    <div key={blockKey} className="w-full max-w-4xl mx-auto mt-12">
+                    <div key={blockKey} className="w-full max-w-4xl mx-auto ">
                       <p className="text-zinc-300 text-lg leading-relaxed whitespace-pre-wrap">
                         {block.content as string}
                       </p>
@@ -283,9 +341,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: post, onNavigate?:
                 case 'github': 
 
                   const github = block.content as GitHubInfo;
-                  console.log("GitHub Data:", JSON.stringify(github, null, 2));
-                  console.log(github.text);
-                   return(
+                  return(
                     <div key={blockKey} className="group relative p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl hover:border-blue-500/50 transition-all duration-300 overflow-hidden mb-3 mt-12">
                       {/* Background decorative gradient */}
                       <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full group-hover:bg-blue-500/20 transition-colors" />

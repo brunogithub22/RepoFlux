@@ -106,32 +106,68 @@ export default function Language({ onNavigate }: NavigationProps) {
     }
   };
 
-  async function deleteLanguages(id:string) {
-    const actionName = "removeLanguage"; // The "function name" your API expects
+  async function deleteLanguages(lang: LanguageType) {
 
+    let test = false;
+    let actionName = "checkLanguage";
     try {  
-      const response = await fetch('/api/drizzle/helper/admin', { // Use the path to your route.ts
+      const response = await fetch('/api/drizzle/helper/admin', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           actionName: actionName,
-          payload: { Id:  id} // Passing the parameter
+          payload: { language:  lang.language} // Passing the parameter
         }),
       });
   
       const result = await response.json();
     
       if (!response.ok) {
-        throw new Error(result.error || "Failed to remove language");
+        throw new Error(result.error || "Failed to api ");
       }
 
-      console.log("Success:", result);
-      await fetchLanguage();
+      if(result.result.message){
+        test = true;
+      }else{
+        setMessage("This language is used in a post")
+        setState("warning");
+        setShowSuccess(true);
+      }
+      
     } catch (error) {
       console.error("Error calling API:", error);
     }
+
+    if(test){
+      actionName = "removeLanguage";
+      try {  
+        const response = await fetch('/api/drizzle/helper/admin', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            actionName: actionName,
+            payload: { Id:  lang.id} 
+          }),
+        });
+  
+        const result = await response.json();
+    
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to remove language");
+        }  
+
+        console.log("Success:", result);
+        await fetchLanguage();
+
+      } catch (error) {
+        console.error("Error calling API:", error);
+      }
+    }
+    
   }
 
   // 2. Filter the list as the user types
@@ -179,7 +215,7 @@ export default function Language({ onNavigate }: NavigationProps) {
                   key={lang.id}
                   className="p-2 flex items-center gap-2"
                 >
-                  <button className='cursor-pointer' onClick={ async ()=> await deleteLanguages(lang.id)}>
+                  <button className='cursor-pointer' onClick={ async ()=> await deleteLanguages(lang)}>
                     <Trash2 size={20}/>
                   </button>  
                    <span> - {lang.language}</span>

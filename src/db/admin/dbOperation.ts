@@ -32,6 +32,20 @@ export async function addRow<T extends PgTable<TableConfig>>(
   }
 }
 
+export async function modifyRow <T extends PgTable<TableConfig>>(
+  table: T, 
+  values: any ,
+  targetColumn?: any
+){
+ try{
+    await dbAdmin.update(table).set(values)
+    return true;
+ }catch(error){
+    console.error("Error changing row:", error);
+    return false;
+ }
+}
+
 // Delete a language by ID
 export async function deleteRow<T extends PgTable>(table: T,criteria: Partial<InferInsertModel<T>>) {
   try {    
