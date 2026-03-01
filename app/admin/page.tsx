@@ -30,9 +30,9 @@ export default function AdminDashboard() {
   const [selectedPost,setSelectedPosts] = useState<BasePost>();
 
   // Use a function to change the tab AND the post at the same time
-  const handleViewPost = (postData: BasePost) => {
+  const handleViewPost = (postData: BasePost,name: string) => {
     setSelectedPosts(postData);
-    setActiveTab('view');
+    setActiveTab(name);
   };
 
   // Turn VIEWS into a function so it can access 'selectedPost'

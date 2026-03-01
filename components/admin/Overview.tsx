@@ -7,7 +7,7 @@ import { FileText, Eye, MessageSquare, Plus,
 import { BasePost } from '@/components/intefaces';
 
 // --- Main Component: Overview (Self-Fetching) ---
-export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab: string) => void; onViewPost: (post: BasePost) => void;}) {
+export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab: string) => void; onViewPost: (post: BasePost,name: string) => void;}) {
   // 1. Initialize state inside the component
   const [posts, setPosts] = useState<BasePost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +164,7 @@ export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab:
                       <td className="p-4">
                         <button 
                           className="cursor-pointer flex items-center gap-2 text-zinc-400 hover:text-blue-400 transition-colors text-sm font-semibold group/btn"
-                          onClick={()=>{onViewPost(post);}}
+                          onClick={()=>{onViewPost(post,"view");}}
                         >
                           <ExternalLink size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                         </button>
@@ -185,7 +185,7 @@ export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab:
                           </button>   
                           
                           <button  
-                            onClick={()=>{}}
+                            onClick={()=>{onViewPost(post,"modify");}}
                             title="Edit Post"
                             className="cursor-pointer p-2 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all active:scale-90"
                           >

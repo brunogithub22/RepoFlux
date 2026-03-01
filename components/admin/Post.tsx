@@ -775,8 +775,8 @@ export default function Post({ onNavigate }: NavigationProps) {
                           <CldImage
                             src={item.icon.link}
                             alt={item.name}
-                            width={200}
-                            height={200}
+                            width={80}
+                            height={80}
                             crop="fit"
                             className="object-cover h-auto w-auto "
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -857,8 +857,8 @@ export default function Post({ onNavigate }: NavigationProps) {
                           <CldImage
                             src={item.icon.link}
                             alt={item.name}
-                            width={400}
-                            height={400}
+                            width={80}
+                            height={80}
                             crop="fit"
                             className="object-cover h-auto w-auto "
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
