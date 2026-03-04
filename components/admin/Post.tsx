@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo, LanguageType,NavigationProps} from "@/components/intefaces"
+import {Item,Block,Gallery,ImageChange,GitHubInfo, CodeInfo, LanguageType,NavigationProps, DriveFile} from "@/components/intefaces"
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
 import YoutubeVideo from "@/components/admin/component/AddYoutubeVideo";
@@ -10,10 +10,12 @@ import {
          Video,Trash2,ChevronLeft,ChevronRight,
          ShieldXIcon, LinkIcon, ShoppingCart, 
          List,Pencil,CheckCircle2,CircleAlert,
-         Github,ExternalLink,Link,Code2,Check,Copy,ChevronDown
+         Github,ExternalLink,Link,Code2,Check,Copy,ChevronDown,
+         FileBraces,Download,FileText
         } from "lucide-react";
 import { CldImage } from 'next-cloudinary';
 import ChangeImageComponent from "./component/ChangeImage";
+import LoadFile from "@/components/admin/component/AddFIle";
 
 export default function Post({ onNavigate }: NavigationProps) {
   
@@ -21,6 +23,7 @@ export default function Post({ onNavigate }: NavigationProps) {
   const [mediaVideo, setMediaVideo] = useState(false);
   const [mediaLink,setMediaLink] = useState(false);
   const [mediaList,setMediaList] = useState(false);
+  const [mediaFile,setMediaFile] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [open, setOpen] = useState(false);
@@ -65,6 +68,10 @@ export default function Post({ onNavigate }: NavigationProps) {
 
   const addImages = async (Item: Gallery[]) =>{
     setBlocks([...blocks,{type:"image",content: Item}])
+  }
+
+  const addFile = async (Item: DriveFile) =>{
+    setBlocks([...blocks,{type:"file",content: Item}])
   }
 
   const addLink = async (Item: Item[]) =>{
@@ -118,7 +125,6 @@ export default function Post({ onNavigate }: NavigationProps) {
           throw new Error(result.error || "Failed to add language");
         }
         const language: LanguageType[] = result.result;
-        language.unshift({id: "0",language: ""});
         setLanguagesofDB(language)
         console.log("Success:", language);
 
@@ -917,6 +923,42 @@ export default function Post({ onNavigate }: NavigationProps) {
                   </div>
                 );  
               })() }
+
+              {block.type === "file" && (() => {
+                const file = block.content as DriveFile;
+
+                return (
+                  <div className="group relative flex items-center justify-between p-5 bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-2xl hover:border-blue-500/30 transition-all duration-300 mb-4">
+
+                    {/* 1. File Info Section */}
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 group-hover:scale-110 transition-transform">
+                        <FileText size={28} />
+                      </div>
+                      <div>
+                        <h4 className="text-zinc-100 font-medium truncate max-w-[200px] lg:max-w-xs">
+                          {file.name || "Untitled File"}
+                        </h4>
+                      </div>
+                    </div>
+ 
+                    {/* 2. Download Button */}
+                    <a 
+                      href={file.downloadUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      download
+                      className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-sm font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-white/5"
+                    >
+                      <Download size={18} />
+                      <span className="hidden sm:inline">Download</span>
+                    </a>
+
+                    {/* Subtle Background Glow */}
+                    <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl -z-10 transition-opacity" />
+                  </div>
+                );
+              })()}
               
             </div>
           ))}
@@ -948,6 +990,7 @@ export default function Post({ onNavigate }: NavigationProps) {
               <MenuButton icon={<ShoppingCart size={16}/>} label="Link Items" onClick={() => {setMediaLink(true); setOpen(false);}} />
               <MenuButton icon={<Github size={16}/>} label="Add Repository" onClick={() => {addgithub(); setOpen(false);}} />
               <MenuButton icon={<Code2 size={16}/>} label="Add Code" onClick={() => {addCode(); setOpen(false);}} />
+              <MenuButton icon={<FileBraces size={16}/>} label="Add File" onClick={()=>{setMediaFile(true); setOpen(false);}} />
             </div>
           </div>
         )}
@@ -964,6 +1007,21 @@ export default function Post({ onNavigate }: NavigationProps) {
               <button onClick={() => setMediaImage(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
             </div>
             <LoadImage onClose={() => setMediaImage(false)} onSave={addImages} isItem={false}/>
+          </div>
+        </div>
+      )}
+
+      {mediaFile && (
+        <div className="fixed w-full inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800  rounded-3xl max-w-4xl max-h-[85vh] shadow-2xl scale-in-center">      
+            <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FileBraces size={25}/>
+                My Files
+              </h2>
+              <button onClick={() => setMediaFile(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+            </div>
+            <LoadFile onClose={() => setMediaFile(false)} onSave={addFile}/>
           </div>
         </div>
       )}

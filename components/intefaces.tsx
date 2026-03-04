@@ -10,7 +10,7 @@ export interface LinkYoutube{
 
 export interface Block{
   type: string
-  content: Gallery[] | Item[] | string | GitHubInfo | CodeInfo;
+  content: Gallery[] | Item[] | string | GitHubInfo | CodeInfo | DriveFile;
 }
 
 export interface Gallery {
@@ -87,4 +87,14 @@ export interface BasePost{
   id: UUID;
   title: string;
   published: boolean;
+}
+
+export interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  downloadUrl: string;
+  previewUrl: string;
+  createdAt: string | null | undefined;
+  size: string | null | undefined;
 }

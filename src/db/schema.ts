@@ -12,6 +12,26 @@ export const posts = pgTable('posts', {
   numContent: integer('num_content').notNull()
 });
 
+export const files = pgTable('files', 
+  {
+    id: uuid('id').primaryKey().notNull(),
+    name: text('name').notNull(),
+    link_download: text('link_download').notNull(),
+    link_preview: text('link_preview').notNull(),
+    mime_type: text('mime_type').notNull(),
+    createdAt: text('createdAt').notNull(),
+    size: text('size').notNull(),
+    idBlock: integer("id_block").notNull(),
+    postId: uuid().notNull(),
+  },
+  (table) =>({
+    postFk: foreignKey({
+      columns: [table.postId],
+      foreignColumns: [posts.id],
+    }).onDelete("cascade"),
+  })
+);
+
 export const textBlock = pgTable('textBlock', {
     id: uuid('id').primaryKey().notNull(),
     type: text('type').notNull(),
@@ -152,7 +172,8 @@ export const languages = pgTable('languages', {
 export const feedback = pgTable('feedback', 
   {
     id: uuid('id').primaryKey().notNull(),
-    feedback: text('feedback'),
+    feedback: text('feedback').notNull(),
+    valutation: integer('valutation').notNull(),
     postId: uuid().notNull(),
   },
   (table) =>({

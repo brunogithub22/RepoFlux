@@ -1,5 +1,7 @@
-import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post } from "@/components/intefaces";
-import { Calendar,Globe,ChevronLeft,ChevronRight,ShoppingBag,Github,ExternalLink,Check,Copy,Code2 } from 'lucide-react';
+import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post,DriveFile } from "@/components/intefaces";
+import { Calendar,Globe,ChevronLeft,ChevronRight,ShoppingBag,
+         Github,ExternalLink,Check,Copy,Code2,FileText,Download
+        } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
 import { useEffect, useState } from "react";
 
@@ -335,6 +337,40 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                       <p className="text-zinc-300 text-lg leading-relaxed whitespace-pre-wrap">
                         {block.content as string}
                       </p>
+                    </div>
+                  );
+
+                case 'file':
+                  const file = block.content as DriveFile;
+                  return(
+                    <div className="group relative flex items-center justify-between p-5 bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-2xl hover:border-blue-500/30 transition-all duration-300 mb-4">
+
+                      {/* 1. File Info Section */}
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 group-hover:scale-110 transition-transform">
+                          <FileText size={28} />
+                        </div>
+                        <div>
+                          <h4 className="text-zinc-100 font-medium truncate max-w-[200px] lg:max-w-xs">
+                            {file.name || "Untitled File"}
+                          </h4>
+                        </div>
+                      </div>
+ 
+                      {/* 2. Download Button */}
+                      <a 
+                        href={file.downloadUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        download
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-sm font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-white/5"
+                      >
+                        <Download size={18} />
+                        <span className="hidden sm:inline">Download</span>
+                      </a>
+
+                      {/* Subtle Background Glow */}
+                      <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 blur-2xl -z-10 transition-opacity" />
                     </div>
                   );
                   

@@ -3,7 +3,7 @@ import { LinkYoutube } from '@/components/intefaces';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const API_KEY = process.env.GOOGLE_PRIVATE_KEY; // The AIza... key
+  const API_KEY = process.env.YOUTUBE_PRIVATE_KEY;
   const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
   
   const url = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet&order=date&maxResults=20&type=video`;
@@ -24,35 +24,29 @@ export async function GET(request: Request) {
 
     const { origin } = new URL(request.url);
 
-    videos.map(async (video:LinkYoutube,id:number)=>{
-      const actionName = "addYoutube"; 
-
-      try { 
-        const response = await fetch(`${origin}/api/drizzle/helper/admin`, { 
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            actionName: actionName,
-            payload: { 
-              title: video.title,
-              link: video.videoUrl,
-              id: video.id
-             } 
-          }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to add video youtube to blog");
+    await Promise.all(
+      videos.map(async (video: LinkYoutube) => {
+        try {
+          const response = await fetch(`${origin}/api/drizzle/helper/admin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              actionName: "addYoutube",
+              payload: {
+                title: video.title,
+                link: video.videoUrl,
+                id: video.id,
+              },
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Failed to add video");
+          console.log("Added video:", video.title);
+        } catch (error) {
+          console.error("Error calling API:", error);
         }
-        console.log("added video"+ video);
-        console.log("Success:", result);
-
-      } catch (error) {
-        console.error("Error calling API:", error);
-      }
-    })
+      })
+    );
 
     const actionName = "removeYoutube"; // The "function name" your API expects
 

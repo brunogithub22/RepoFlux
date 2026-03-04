@@ -6,18 +6,29 @@ import Link from "next/link";
 export default function YoutubeVideo({ onClose, onSave }: { onClose: () => void, onSave: (video: Gallery[]) => void }){
 
     useEffect(()=>{
-        fetchVideos();
+        fetchYoutube();
     },[]);
 
     const [loading, setLoading] = useState(false); 
     const [videoYoutube,setVideoYoutube] = useState<LinkYoutube[]>(); 
 
-    const fetchVideos = async () => {
+    const fetchYoutube = async () => {
       setLoading(true);
-      const res = await fetch('/api/youtube');
-      const data = await res.json();
-      setVideoYoutube(data);
-      setLoading(false);
+      try {
+        const response = await fetch('/api/youtube');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to fetch YouTube videos");
+        }
+
+        console.log("Success:", data);
+        setVideoYoutube(data);
+      } catch (error) {
+        console.error("Error fetching YouTube videos:", error);
+      } finally {
+        setLoading(false);  // 👈 always runs, even if an error occurs
+      }
     };
 
     return(

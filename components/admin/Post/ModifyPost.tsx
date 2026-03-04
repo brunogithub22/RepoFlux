@@ -155,7 +155,11 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
                     <section>
                        <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-4">Description</h3>
                        <p className="text-zinc-300 text-lg leading-relaxed whitespace-pre-wrap">
-                           <input value={post?.description} onChange={()=>{}} />
+                           <input 
+                             value={post?.description}
+                             onChange={(e)=>{
+                              setPost(prev => prev ? ({ ...prev, description: e.target.value }) : prev);
+                             }} />
                        </p>
                     </section>
                 </div>

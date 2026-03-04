@@ -1,7 +1,7 @@
 // app/api/tasks/actions.ts
-import { languages,images,posts,youtube_video,link,github,code,postImage,textBlock,postVideo, feedback } from "@/src/db/schema";
+import { languages,images,posts,youtube_video,link,github,code,postImage,textBlock,postVideo, feedback, files } from "@/src/db/schema";
 import { addRow,deleteRow,searchItem,getAllRows,getItem,modifyRow } from "@/src/db/admin/dbOperation";
-import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube, BasePost,post, LanguageType } from "@/components/intefaces";
+import { Block, CodeInfo, Gallery, GitHubInfo, Item, LinkYoutube, BasePost,post, LanguageType, DriveFile } from "@/components/intefaces";
 import { UUID } from "crypto";
 
 export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
@@ -101,7 +101,17 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         return {message: "Post already exsist"};
     }
 
-    const check = {link: true,list: true, image: true,textBlock: true, textArea: true,youtube: true,code: true, github: true}; 
+    const check = {
+        link: true,
+        list: true, 
+        image: true,
+        textBlock: true, 
+        textArea: true,
+        youtube: true,
+        code: true, 
+        github: true,
+        file: true
+    }; 
     const date:string = new Date().toDateString();
     const id_post = crypto.randomUUID();
 
@@ -120,6 +130,26 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         data.content.map(async (item: Block,index:number)=>{
             let text: string;
             switch (item.type) {
+                case "file":
+                    const file = item.content as DriveFile;
+                    const addfile = await addRow(files,{
+                        id: crypto.randomUUID(),
+                        postId: id_post,
+                        name: file.name,
+                        link_download: file.downloadUrl,
+                        link_preview: file.previewUrl,
+                        mime_type: file.mimeType,
+                        createdAt: file.createdAt as string,
+                        size: file.size as string,
+                        idBlock: index
+                    });
+                    if(addfile){
+                        console.log("File added");
+                    }else{
+                        check.file = false;
+                        console.log("File not added");
+                    }
+                    break;
                 case "image":
                     const images = item.content as Gallery[];
                     // Nested loop must also be for...of
@@ -269,7 +299,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
       const blocks: Block[] = [];
 
       for (let indexBlock = 0; indexBlock < cont; indexBlock++) {
-        let item: Gallery[] | Item[] | string | CodeInfo | GitHubInfo = "";
+        let item: Gallery[] | Item[] | string | CodeInfo | GitHubInfo | DriveFile = "";
         const block: Block = { type: "", content: [] };
 
         // 1. Fetch the relations
@@ -281,7 +311,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         const textAreaBlockPost = await getItem(textBlock, { postId: idPost, idBlock: indexBlock, type: "textAreaBlock" });  
         const githubPost = await getItem(github, { postId: idPost, idBlock: indexBlock});  
         const codePost = await getItem(code, { postId: idPost, idBlock: indexBlock });  
-
+        const filePost = await getItem(files, { postId: idPost, idBlock: indexBlock }); 
         
         const listOfImage = Array.isArray(imagePost) ? imagePost : [];
         const listOflists = Array.isArray(listPost) ? listPost : [];
@@ -291,6 +321,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         const listOfTextAreaBlock = Array.isArray(textAreaBlockPost) ? textAreaBlockPost : [];
         const listOfgithub = Array.isArray(githubPost) ? githubPost : [];
         const listOfcode = Array.isArray(codePost) ? codePost : [];
+        const listOffile = Array.isArray(filePost) ? filePost : [];
         
         
         // 2. FIX: Use for...of instead of .map() to respect 'await'
@@ -308,6 +339,11 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
             }
           }
           item = galleryItems;
+        }
+
+        if(listOffile.length > 0){
+            block.type = "file"
+            item = listOffile[0] as DriveFile;
         }
 
         if (listOflinks.length > 0) {
@@ -447,6 +483,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
             deleteRow(textBlock, { postId: postData.id, type: "textAreaBlock" }),
             deleteRow(github, { postId: postData.id }),
             deleteRow(code, { postId: postData.id }),
+            deleteRow(files,{ postId: postData.id }),
             deleteRow(posts, { id: postData.id })
         ]);
     };
