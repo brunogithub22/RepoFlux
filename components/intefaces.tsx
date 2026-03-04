@@ -98,3 +98,9 @@ export interface DriveFile {
   createdAt: string | null | undefined;
   size: string | null | undefined;
 }
+
+export interface Feedback {
+  id: string;
+  feedback: string;
+  valutation: number;
+}

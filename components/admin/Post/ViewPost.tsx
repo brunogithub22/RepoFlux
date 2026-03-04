@@ -1,9 +1,10 @@
-import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post,DriveFile } from "@/components/intefaces";
+import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post,DriveFile, Feedback } from "@/components/intefaces";
 import { Calendar,Globe,ChevronLeft,ChevronRight,ShoppingBag,
-         Github,ExternalLink,Check,Copy,Code2,FileText,Download
+         Github,ExternalLink,Check,Copy,Code2,FileText,Download,ShieldXIcon,
+         CircleAlert,CheckCircle2
         } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNavigate?: (tab: string) => void;}){
 
@@ -11,9 +12,15 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
   const [lang,setLang] = useState<LanguageType[]>([]);
   const [content,setContent] = useState<Block[]>([]);
   const [isLoading, setIsLoading] = useState(true); 
+  const [feedback,setFeedback] = useState("");
+  const [listFeedback,setListFeedback] = useState<Feedback[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [message, setMessage] = useState("");
+  const [valutation,setValutation] = useState<number | null>(0);
+  const [state, setState] = useState<"idle" | "success" | "warning" | "error">("idle");
+  const emojis = ['😞', '😐', '😊', '🔥'];
 
-  useEffect(() => {
-    const getPost = async () => {
+  const getPost = useCallback (async () => {
       const actionName = "getPost";
       try {
         const response = await fetch('/api/drizzle/helper/admin', {
@@ -30,6 +37,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
           
           // 1. Update the state for the UI
           setPost(data);
+          await getFeedback();
 
           if (!data) {
             console.log("Error: Data is empty");
@@ -50,13 +58,13 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
       finally{
         setIsLoading(false);
       }
-    };
+  }, []);
 
-    // Only run if Post?.id exists to avoid unnecessary empty API calls
+  useEffect(() => {
     if (Post?.id) {
       getPost();
     }
-  }, [Post?.id]); // Added dependency to re-run if the ID changes
+  }, [Post?.id]); 
 
     const [selectedIdx, setSelectedIdx] = useState<number>(0);
     const [copied, setCopied] = useState(false);
@@ -81,6 +89,81 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
       setCopied(true);
       setTimeout(() => setCopied(false), 2000); // Reset icon after 2 seconds
     };
+
+    const sendFeedback = async () =>{
+      const actionName = "addFeedback";
+
+      if(valutation == null){
+        setMessage("Choice a valutation.");
+        setState("warning");
+        setShowSuccess(true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/drizzle/helper/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ actionName, payload: { postId: Post?.id,text: feedback, valutation: valutation} }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          if(result.result.message){
+            setMessage("FeedBack added successfully");
+            setState("success");
+            console.log("FeedBack added successfully:");
+            await getPost();
+          }else{
+            setMessage("FeedBack added successfully");
+            setState("warning");
+            console.log("FeedBack not added successfully:");
+          }
+        } else {
+          setMessage("Feedback not added API error");
+          setState("error");
+          console.error("Feedback not added API error");
+        }
+        setValutation(null);
+        setFeedback("");
+        setShowSuccess(true);
+      } catch (error) {
+        console.error("Error fetching post:", error);
+      }
+    }
+
+
+    const getFeedback = async () =>{
+      const actionName = "getFeedbacks";
+      try {
+        const response = await fetch('/api/drizzle/helper/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // Use the ID from your initial source (e.g., props or URL params)
+          body: JSON.stringify({ actionName, payload: { id: Post?.id } }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+
+          let data: Feedback[] = [];
+          if(result.result.message){
+            data = result.result.data;
+            console.log("feedback loaded successfully:", data);
+          }else{
+            console.log("feedback empty");
+          }
+          setListFeedback(data);
+          
+        } else {
+          console.error("Post feedback not found or API error");
+        }
+      } catch (error) {
+        console.error("Error fetching post:", error);
+      }
+    }
 
     if (!Post) return <div>No post selected. Please go back to Overview.</div>;
 
@@ -158,6 +241,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
 
         </div>
         <div className="w-full flex flex-col justify-center py-5">
+
             {content.map((block, index) => {
               const blockKey = `block-${index}`;
 
@@ -343,7 +427,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                 case 'file':
                   const file = block.content as DriveFile;
                   return(
-                    <div className="group relative flex items-center justify-between p-5 bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-2xl hover:border-blue-500/30 transition-all duration-300 mb-4">
+                    <div key={blockKey} className="group relative flex items-center justify-between p-5 bg-zinc-900/40 backdrop-blur-md border border-zinc-800 rounded-2xl hover:border-blue-500/30 transition-all duration-300 mb-4">
 
                       {/* 1. File Info Section */}
                       <div className="flex items-center gap-4">
@@ -351,7 +435,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                           <FileText size={28} />
                         </div>
                         <div>
-                          <h4 className="text-zinc-100 font-medium truncate max-w-[200px] lg:max-w-xs">
+                          <h4 className="text-zinc-100 font-medium truncate max-w-50 lg:max-w-xs">
                             {file.name || "Untitled File"}
                           </h4>
                         </div>
@@ -363,7 +447,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                         target="_blank" 
                         rel="noopener noreferrer"
                         download
-                        className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-sm font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-white/5"
+                        className="cursor-pointer flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-sm font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-white/5"
                       >
                         <Download size={18} />
                         <span className="hidden sm:inline">Download</span>
@@ -465,9 +549,139 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                   return <div key={blockKey} className="text-zinc-500 text-xs">Unsupported block type: {block.type}</div>;
               }
             })}
+
+            {listFeedback.length === 0 ? (
+              <div className="text-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl">
+                <p className="text-zinc-500">No feedback received yet.</p>
+              </div>
+            ) : (
+              <div className="w-full max-w-2xl mx-auto mt-8 p-6 bg-zinc-900/30 border border-zinc-800/50 rounded-3xl">
+                <div className="flex items-center justify-between mb-6 px-2">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tight">Feedback</h2>
+                    <p className="text-zinc-500 text-sm">what users are saying:</p>
+                  </div>
+    
+                  {/* Dynamic Counter Badge */}
+                  <div className="bg-zinc-800 text-zinc-400 px-3 py-1 rounded-full text-xs font-mono border border-zinc-700">
+                    {listFeedback.length} {listFeedback.length === 1 ? 'Entry' : 'Entries'}
+                  </div>
+                </div>
+                
+                {listFeedback.map((feedback, index) => (
+                  <div  
+                    key={feedback.id} 
+                    className="mt-2 group p-5 bg-zinc-900/50 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-all duration-300 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+          
+                      {/* 1. Content and Rating */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl" role="img" aria-label="rating">
+                            {emojis[feedback.valutation]}
+                          </span>
+                          <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
+                            Rating {feedback.valutation + 1}/4
+                          </span>
+                        </div>
+            
+                        <p className="text-zinc-300 leading-relaxed wrap-break-words">
+                          {feedback.feedback || "no text provided"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="h-0.5 w-0 group-hover:w-full bg-blue-500/30 transition-all duration-500 mt-4 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            )}
+    
         </div>
-        
+
+        <div className="max-w-xl mx-auto p-6 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl">
+          <h3 className="text-xl font-bold text-white mb-2">Send us your feedback</h3>
+          <p className="text-zinc-400 text-sm mb-6">How can we improve your experience?</p>
+
+          {/* Sentiment Selection (Optional but Senior touch) */}
+          <div className="flex gap-4 mb-6">
+            {emojis.map((emoji, id) => {
+              const isActive = valutation === id;
+
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => {!isActive ? setValutation(id) : setValutation(null)}}
+                  className={`
+                    cursor-pointer text-2xl p-3 rounded-xl transition-all duration-300
+                    ${isActive 
+                      ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] scale-110' 
+                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}
+                  `}
+                >
+                  {emoji}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative">
+            <textarea
+              value={feedback}
+              onChange={(e) => {setFeedback(e.target.value)}}
+              placeholder="Write something..."
+              className="w-full h-40 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+            />
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              onClick={sendFeedback} 
+              className="cursor-pointer px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50"
+            >
+              Submit Feedback
+            </button>
+          </div>
+        </div>
+
+        {/* CUSTOM SUCCESS MODAL */}
+        {showSuccess && (
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+              <div className="flex flex-col items-center text-center">
+                {state === "success"  ? (
+                  <div className="bg-green-500/10 p-4 rounded-full mb-4">
+                    <CheckCircle2 size={48} className="text-green-500" />
+                  </div>
+                ):(
+                  state === "warning" ?(
+                    <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
+                      <CircleAlert size={48} className="text-yellow-500" />
+                    </div>
+                ):(
+                  <div className="bg-red-500/10 p-4 rounded-full mb-4">
+                    <ShieldXIcon size={48} className="text-red-500" />
+                  </div>
+                )
+              )}
+                      
+                <p className="text-zinc-400 mb-6">
+                  {message}
+                </p>
+                <button
+                  onClick={() => setShowSuccess(false)}
+                  className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      
     );   
 
 }

@@ -256,13 +256,12 @@ export default function Language({ onNavigate }: NavigationProps) {
                 )
               )}
               
-              <h3 className="text-xl font-bold text-white mb-2">Upload Complete!</h3>
               <p className="text-zinc-400 mb-6">
                 {message}
               </p>
               <button
                 onClick={() => setShowSuccess(false)}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+                className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
               >
                 Continue
               </button>

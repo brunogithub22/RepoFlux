@@ -484,6 +484,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
             deleteRow(github, { postId: postData.id }),
             deleteRow(code, { postId: postData.id }),
             deleteRow(files,{ postId: postData.id }),
+            deleteRow(feedback,{ postId: postData.id}),
             deleteRow(posts, { id: postData.id })
         ]);
     };
@@ -508,13 +509,18 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
     }
   },
 
-  getFeedbacks: async ()=>{
-    const result = await getItem(feedback,{});
+  getFeedbacks: async (data)=>{
+    const result = await getItem(feedback,{postId: data.id});
     if(result.length > 0){
-        return result;
+        return {data: result, message: true};
     }else{
-        return [];
+        return {data: [], message: false};
     }
+  },
+
+  addFeedback: async (data)=>{
+    const result = await addRow(feedback,{id: crypto.randomUUID(), feedback: data.text, valutation: data.valutation, postId: data.postId});
+    return {message: result};
   },
 
   publish: async (data) =>{

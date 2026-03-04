@@ -14,7 +14,7 @@ import {
          FileBraces,Download,FileText
         } from "lucide-react";
 import { CldImage } from 'next-cloudinary';
-import ChangeImageComponent from "./component/ChangeImage";
+import ChangeImageComponent from "@/components/admin/component/ChangeImage";
 import LoadFile from "@/components/admin/component/AddFIle";
 
 export default function Post({ onNavigate }: NavigationProps) {
@@ -357,7 +357,7 @@ export default function Post({ onNavigate }: NavigationProps) {
                 </div>
                 )
               }
-            </div>
+          </div>
 
         </section>
 
@@ -936,7 +936,7 @@ export default function Post({ onNavigate }: NavigationProps) {
                         <FileText size={28} />
                       </div>
                       <div>
-                        <h4 className="text-zinc-100 font-medium truncate max-w-[200px] lg:max-w-xs">
+                        <h4 className="text-zinc-100 font-medium truncate max-w-50 lg:max-w-xs">
                           {file.name || "Untitled File"}
                         </h4>
                       </div>
@@ -948,7 +948,7 @@ export default function Post({ onNavigate }: NavigationProps) {
                       target="_blank" 
                       rel="noopener noreferrer"
                       download
-                      className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-sm font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-white/5"
+                      className="flex cursor-pointer items-center gap-2 px-5 py-2.5 bg-white hover:bg-zinc-200 text-black text-sm font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-white/5"
                     >
                       <Download size={18} />
                       <span className="hidden sm:inline">Download</span>
