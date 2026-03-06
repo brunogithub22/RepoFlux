@@ -176,7 +176,11 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
         }
     }, []); // Added dependency to re-run if the ID changes
     
-    const updatePost = async ()=>{}
+    const updatePost = async ()=>{
+
+      
+
+    }
 
     if (!Post) return <div>No post selected. Please go back to Overview.</div>;
 
@@ -582,6 +586,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
                     <textarea
                       className="w-full mt-2 bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
                       placeholder="Write a caption for this video..."
+                      value={contents[0].text}
                       rows={2}
                       onChange={(e)=>{
                         setContent(prev => prev.map((block, i) => {
