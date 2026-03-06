@@ -39,6 +39,8 @@ export default function Post({ onNavigate }: NavigationProps) {
   const [mylanguages,setMyLanguages] = useState<LanguageType[]>([]);
   const [languagesofDB,setLanguagesofDB] = useState<LanguageType[]>([]);
   const [showLanguage,setShowLanguage] = useState(false);
+  const [Icon, setIcon] = useState<string>("");
+  const [showIcon,setShowIcon] = useState(false);
   
   useEffect(()=>{
     getLanguages();
@@ -68,6 +70,10 @@ export default function Post({ onNavigate }: NavigationProps) {
 
   const addImages = async (Item: Gallery[]) =>{
     setBlocks([...blocks,{type:"image",content: Item}])
+  }
+
+  const addIcon = async (item: Gallery[])=>{
+    setIcon(item[0].link)
   }
 
   const addFile = async (Item: DriveFile) =>{
@@ -143,7 +149,7 @@ export default function Post({ onNavigate }: NavigationProps) {
   }
 
   const publish = async () =>{
-    const check = {link: true, list: true,textBlock: true, textArea: true};
+    const check = {link: true, list: true,textBlock: true, textArea: true,code: true};
     let array,text:string;
 
     blocks.map((block)=>{
@@ -176,10 +182,16 @@ export default function Post({ onNavigate }: NavigationProps) {
             }
           })
           break;
+        case "code":
+          array = block.content as CodeInfo
+          if(!array.fileName.trim() && !array.code.trim()){
+            check.code = false;
+          }
+          break; 
       }
     })
 
-    if(category !== "empty" && title.trim() && description.trim())
+    if(category !== "empty" && title.trim() && description.trim() && Object.values(check).every(v => v === true) && Icon !== "")
     {
       const response = await fetch('/api/post', { // Use the path to your route.ts
         method: 'POST',
@@ -187,12 +199,13 @@ export default function Post({ onNavigate }: NavigationProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: title.trim() ? title: "",
-          description: description.trim() ? description : "",
+          title: title,
+          description: description,
           category: category,
           postLanguages: Array.isArray(mylanguages) ? mylanguages: [],
           blog: Array.isArray(blocks) ? blocks: [],
-          cont: Array.isArray(blocks) ? blocks.length: 0
+          cont: Array.isArray(blocks) ? blocks.length: 0,
+          icon: Icon
         }),
       });
   
@@ -222,11 +235,7 @@ export default function Post({ onNavigate }: NavigationProps) {
         }      
       }
     }else{
-      if(category === "empty"){
-        setMessage("Some text is missing and select the category");
-      }else{
-        setMessage("Some text is missing");
-      }
+      setMessage("Something is missing");
       setResult("error");
     }
 
@@ -297,6 +306,71 @@ export default function Post({ onNavigate }: NavigationProps) {
             ))}
           </div>
 
+          
+          {Icon && Icon.length !== 0 ? (
+            <div className="relative w-full flex flex-col items-center justify-center p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+
+              {/* Label - Centered above the image */}
+              <div className="flex items-center gap-2 text-zinc-400 mb-4">
+                <Image size={16} strokeWidth={2} /> 
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                   Post Icon
+                </span>
+              </div>
+
+
+              {/* Image - Centered and Responsive */}
+              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-xl shadow-black/5">
+                <div className="absolute top-2 right-2 flex gap-2 z-10">
+                  <button 
+                    onClick={() => {setShowIcon(true)}} 
+                    className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-all" 
+                    title="Edit item"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                </div>
+                <CldImage
+                  width="200"
+                  height="200"
+                  src={Icon} 
+                  alt="Project Icon"
+                  crop="fill"
+                  gravity="center"
+                  className="object-cover w-full h-full transition-transform hover:scale-110 duration-500"
+                  sizes="200px"
+                />
+              </div>
+            </div>
+          ) : (
+            <div onClick={()=>setShowIcon(true)} className="group cursor-pointer w-32 h-32 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 hover:text-blue-500 transition-all active:scale-95">
+              <Plus 
+                size={32}  
+                className="transition-transform group-hover:rotate-90 group-hover:scale-110" 
+              />
+  
+              {/* The Text - Styled for readability */}
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                Add Icon 
+              </span>
+            </div> 
+          )}
+
+          {showIcon && (
+            <div className="fixed w-full inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+              <div className="bg-zinc-900 border border-zinc-800  rounded-3xl max-w-4xl max-h-[85vh] shadow-2xl scale-in-center">      
+                <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <Image size={25}/>
+                    My Images
+                  </h2>
+                  <button onClick={() => setShowIcon(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+                </div>
+                <LoadImage onClose={() => setShowIcon(false)} onSave={addIcon} isItem={true}/>
+              </div>
+            </div>
+          )}
+
           <div className="relative w-full">
             {/* The "Trigger" Button (Looks like your select) */}
             <button
@@ -359,8 +433,8 @@ export default function Post({ onNavigate }: NavigationProps) {
               }
           </div>
 
-        </section>
 
+        </section>
 
         {/* DYNAMIC BLOCKS */}
         <div className="space-y-2">

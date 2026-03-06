@@ -80,7 +80,7 @@ export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab:
         const response = await fetch('/api/drizzle/helper/admin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ actionName, payload: { publish: data } }),
+          body: JSON.stringify({ actionName, payload: { publish: publish } }),
         });
         const result = await response.json();
         if (response.ok) {

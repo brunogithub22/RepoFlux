@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
     try {
-        const { blog, title, description, category, postLanguages,cont } = await request.json();
+        const { blog, title, description, category, postLanguages,cont,icon } = await request.json();
         const actionName = "newPage";
         const { origin } = new URL(request.url);
 
@@ -20,7 +20,8 @@ export async function POST(request: Request) {
                     content: blog, 
                     category: category,
                     language: postLanguages,
-                    cont:cont 
+                    cont:cont,
+                    icon: icon 
                 }
             }),
         });

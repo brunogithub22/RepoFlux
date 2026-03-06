@@ -16,7 +16,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
   const [listFeedback,setListFeedback] = useState<Feedback[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [message, setMessage] = useState("");
-  const [valutation,setValutation] = useState<number | null>(0);
+  const [valutation,setValutation] = useState<number | null>(null);
   const [state, setState] = useState<"idle" | "success" | "warning" | "error">("idle");
   const emojis = ['😞', '😐', '😊', '🔥'];
 
@@ -177,7 +177,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
     }
     
     return(
-      <div className="max-w-4xl mx-auto py-10 px-6 bg-zinc-950 text-zinc-100 min-h-screen">
+      <div className=" mx-auto py-10 px-6 bg-zinc-950 text-zinc-100 min-h-screen">
           
           {/* 2. Header Section */}
           <header className="space-y-6 mb-12">
@@ -551,7 +551,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
             })}
 
             {listFeedback.length === 0 ? (
-              <div className="text-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl">
+              <div className="text-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl mt-3">
                 <p className="text-zinc-500">No feedback received yet.</p>
               </div>
             ) : (

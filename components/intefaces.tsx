@@ -79,14 +79,16 @@ export interface post{
   title: string;
   description: string;
   languages: LanguageType[];
-  content: Block[],
+  content: Block[];
   cont: number;
+
 }
 
 export interface BasePost{
   id: UUID;
   title: string;
   published: boolean;
+  icon: string;
 }
 
 export interface DriveFile {
@@ -103,4 +105,11 @@ export interface Feedback {
   id: string;
   feedback: string;
   valutation: number;
+}
+
+export interface ProjectCardProps {
+  title: string;
+  description: string;
+  tags: string[];
+  imageUrl?: string;
 }

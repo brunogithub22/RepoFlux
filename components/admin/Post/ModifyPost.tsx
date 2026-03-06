@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState,useEffect, act } from "react";
 import { BasePost,post,LanguageType,Block,Gallery,Item,CodeInfo,GitHubInfo,DriveFile,ImageChange } from "@/components/intefaces";
 import { Calendar, Save,ChevronDown,Trash2,Plus,ExternalLink,Link,Pencil,
          Type,ImageIcon,Video,List,ShoppingCart,Github,Check,Copy,ChevronLeft,ChevronRight,
@@ -34,7 +34,10 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
     const [result,setResult] = useState<"idle" | "warning" | "error" | "success">("idle");
     const [message,setMessage] = useState<string>("");
     const [copied, setCopied] = useState(false);
-    
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [Icon, setIcon] = useState<string>("");
+    const [showIcon,setShowIcon] = useState(false);
+
   const addTextBlock = async () => {
     setContent([...content, { type: "textBlock", content: "" }]);
   };
@@ -66,6 +69,10 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
 
   const addList = async (Item: Item[]) =>{
     setContent([...content,{type:"list",content: Item}])
+  }
+
+  const addIcon = async (item: Gallery[])=>{
+    setIcon(item[0].link)
   }
 
   const addCode = async () =>{
@@ -178,8 +185,121 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
     
     const updatePost = async ()=>{
 
-      
+      let actionName = "removePost";
+      try {
+        const response = await fetch('/api/drizzle/helper/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ actionName, payload: { post: post } }),
+        });
+        const result = await response.json();
+        if (response.ok) {
+          if(result.result.success){
+            setMessage('Post successfully removed!');
+            setResult("success");
+          }else{
+            setMessage('Something went wrong!');
+            setResult("error");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user languages:", error);
+      }
 
+      if(result === "success"){
+
+        const check = {link: true, list: true,textBlock: true, textArea: true,code: true};
+        let array,text:string;
+
+        content.map((block)=>{
+          switch(block.type){
+            case "textBlock":
+              text = block.content as string;
+              if(!text.trim()){
+                check.textBlock = false;
+              }
+              break;
+            case "textAreaBlock":
+              text = block.content as string;
+              if(!text.trim()){
+                check.textBlock = false;
+              }
+              break;
+            case "link":
+              array = block.content as Item[]
+              array.map((item,index)=>{
+                if(!item.link?.trim() && !item.name.trim()){
+                  check.link = false;
+                }
+              })  
+              break;
+            case "list":
+              array = block.content as Item[]
+              array.map((item,index)=>{
+                if(!item.name.trim()){
+                  check.list = false;
+                }
+              })
+              break;
+            case "code":
+              array = block.content as CodeInfo
+              if(!array.fileName.trim() && !array.code.trim()){
+                check.code = false;
+              }
+              break; 
+          }
+        })
+
+        if(category !== "empty" && post?.title.trim() && post?.description.trim() && Object.values(check).every(v => v === true) && Icon !== "")
+        {
+          const response = await fetch('/api/post', { // Use the path to your route.ts
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: post?.title,
+              description: post?.description,
+              category: category,
+              postLanguages: Array.isArray(mylanguages) ? mylanguages: [],
+              blog: Array.isArray(content) ? content: [],
+              cont: Array.isArray(content) ? content.length: 0,
+              icon: Icon
+            }),
+          });
+  
+          const res = await response.json();
+      
+          if (!response.ok) {
+            setResult("error");
+            throw new Error(res.error || "Failed to add post");
+          }else{
+         
+            switch(res.result.result.message){
+              case "page added":
+                console.log("Success:", res);
+                setResult("success");
+                setMessage("Post updated with success!!");
+                break;
+              case "page not added":
+                console.log("Error:", res);
+                setResult("error");
+                setMessage("Something went wrong!!");
+                break;
+              case "Post already exsist":
+                console.log("Success:", res);
+                setResult("warning");
+                setMessage("Post already exsist!!");
+                break;
+            }      
+          }
+        }else{
+          setMessage("Something is missing");
+          setResult("error");
+        }
+
+        setShowSuccess(true);
+      }
     }
 
     if (!Post) return <div>No post selected. Please go back to Overview.</div>;
@@ -194,7 +314,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
     }
 
     return(
-        <div onClick={()=>{if(showLanguage){setShowLanguage(false);}}} className="max-w-4xl mx-auto py-10 px-6 bg-zinc-950 text-zinc-100 min-h-screen">
+        <div onClick={()=>{if(open){ setOpen(false);} if(showLanguage){setShowLanguage(false);}}} className=" mx-auto py-10 px-6 bg-zinc-950 text-zinc-100 min-h-screen">
             {/* 2. Header Section */}
             <header className="space-y-6 mb-2">
               <div className="flex items-center gap-3">
@@ -265,6 +385,69 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
               />
            </header>
 
+           {Icon && Icon.length !== 0 ? (
+            <div className="relative w-full flex flex-col items-center justify-center p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+
+              {/* Label - Centered above the image */}
+              <div className="flex items-center gap-2 text-zinc-400 mb-4">
+                <Image size={16} strokeWidth={2} /> 
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                   Post Icon
+                </span>
+              </div>
+
+
+              {/* Image - Centered and Responsive */}
+              <div className="relative w-48 h-48 rounded-2xl overflow-hidden shadow-xl shadow-black/5">
+                <div className="absolute top-2 right-2 flex gap-2 z-10">
+                  <button 
+                    onClick={() => {setShowIcon(true)}} 
+                    className="cursor-pointer p-2 bg-blue-900/20 text-blue-400 rounded-full hover:bg-blue-900/40 border border-blue-500/20 transition-all" 
+                    title="Edit item"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                </div>
+                <CldImage
+                  width="200"
+                  height="200"
+                  src={Icon} 
+                  alt="Project Icon"
+                  crop="fill"
+                  gravity="center"
+                  className="object-cover w-full h-full transition-transform hover:scale-110 duration-500"
+                  sizes="200px"
+                />
+              </div>
+            </div>
+          ) : (
+            <div onClick={()=>setShowIcon(true)} className="group cursor-pointer w-32 h-32 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 hover:text-blue-500 transition-all active:scale-95">
+              <Plus 
+                size={32}  
+                className="transition-transform group-hover:rotate-90 group-hover:scale-110" 
+              />
+  
+              {/* The Text - Styled for readability */}
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                Add Icon 
+              </span>
+            </div> 
+          )}
+
+          {showIcon && (
+            <div className="fixed w-full inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+              <div className="bg-zinc-900 border border-zinc-800  rounded-3xl max-w-4xl max-h-[85vh] shadow-2xl scale-in-center">      
+                <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+                  <h2 className="text-xl font-bold flex items-center gap-2">
+                    <Image size={25}/>
+                    My Images
+                  </h2>
+                  <button onClick={() => setShowIcon(false)} className="cursor-pointer hover:text-white text-zinc-500">Close</button>
+                </div>
+                <LoadImage onClose={() => setShowIcon(false)} onSave={addIcon} isItem={true}/>
+              </div>
+            </div>
+          )}
             
            <div className="relative w-full">
             {/* The "Trigger" Button (Looks like your select) */}
@@ -1094,6 +1277,41 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
               </div>
             </div> 
           )} 
+
+          {/* CUSTOM SUCCESS MODAL */}
+                {showSuccess && (
+                  <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl scale-in-center">
+                      <div className="flex flex-col items-center text-center">
+          
+                        {result === "success"  ? (
+                          <div className="bg-green-500/10 p-4 rounded-full mb-4">
+                            <CheckCircle2 size={48} className="text-green-500" />
+                          </div>
+                        ):(
+                          result === "warning" ?(
+                            <div className="bg-yellow-500/10 p-4 rounded-full mb-4">
+                              <CircleAlert size={48} className="text-yellow-500" />
+                            </div>
+                          ):(
+                            <div className="bg-red-500/10 p-4 rounded-full mb-4">
+                              <ShieldXIcon size={48} className="text-red-500" />
+                            </div>
+                          )
+                        )}
+                        
+                        <h3 className="text-xl font-bold text-white mb-2">{message}</h3>
+                        
+                        <button
+                          onClick={() => setShowSuccess(false)}
+                          className="cursor-pointer w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+                        >
+                          Continue
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
         </div>
     );   
 }

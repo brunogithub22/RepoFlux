@@ -35,10 +35,22 @@ export async function addRow<T extends PgTable<TableConfig>>(
 export async function modifyRow <T extends PgTable<TableConfig>>(
   table: T, 
   values: any ,
-  targetColumn?: any
+  criteria?: any
 ){
  try{
-    await dbAdmin.update(table).set(values)
+    const columns = getTableColumns(table);
+    const filters = Object.entries(criteria).map(([key, value]) => {  
+      const columnReference = columns[key];
+
+      if (!columnReference) {
+        throw new Error(`Column ${key} not found in table ${table}`);
+      }
+
+      // Create the comparison: id = 'some-uuid'
+      return eq(columnReference, value);
+    });
+
+    await dbAdmin.update(table).set(values).where(and(...filters))
     return true;
  }catch(error){
     console.error("Error changing row:", error);
