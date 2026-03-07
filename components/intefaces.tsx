@@ -81,13 +81,16 @@ export interface post{
   languages: LanguageType[];
   content: Block[];
   cont: number;
-
+  tags: string[];
 }
 
 export interface BasePost{
   id: UUID;
   title: string;
   published: boolean;
+  description: string;
+  tags: string[];
+  type: string;
   icon: string;
 }
 

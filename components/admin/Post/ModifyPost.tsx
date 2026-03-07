@@ -2,7 +2,8 @@ import { useState,useEffect, act } from "react";
 import { BasePost,post,LanguageType,Block,Gallery,Item,CodeInfo,GitHubInfo,DriveFile,ImageChange } from "@/components/intefaces";
 import { Calendar, Save,ChevronDown,Trash2,Plus,ExternalLink,Link,Pencil,
          Type,ImageIcon,Video,List,ShoppingCart,Github,Check,Copy,ChevronLeft,ChevronRight,
-         Code2,FileBraces,Image,LinkIcon,CheckCircle2,CircleAlert,ShieldXIcon,FileText,Download
+         Code2,FileBraces,Image,LinkIcon,CheckCircle2,CircleAlert,ShieldXIcon,FileText,Download,
+         X
         } from "lucide-react";
 import LoadImage  from "@/components/admin/component/AddImages";
 import LoadLink from "@/components/admin/component/AddLink";
@@ -37,6 +38,29 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
     const [showSuccess, setShowSuccess] = useState(false);
     const [Icon, setIcon] = useState<string>("");
     const [showIcon,setShowIcon] = useState(false);
+    const [tags,setTags] = useState<string[]>([]);
+    const [inputValue, setInputValue] = useState("");
+    
+      const addTag = () => {
+        const trimmedValue = inputValue.trim();
+        
+        // 1. Prevent empty tags or duplicates
+        if (trimmedValue && !tags.includes(trimmedValue)) {
+          setTags((prev) => [...prev, trimmedValue]);
+          setInputValue(""); // Clear input after adding
+        }
+      };
+    
+      const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addTag();
+        }
+      };
+    
+      const removeTag = (tagToRemove: string) => {
+        setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
+      };
 
   const addTextBlock = async () => {
     setContent([...content, { type: "textBlock", content: "" }]);
@@ -162,6 +186,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
               // Set other states using the fresh 'data' object
               setMyLanguages(data.languages || []);
               setContent(data.content || []);
+              setTags(data.tags || []);
               setCategory(data.type);
               await getLanguages();
             
@@ -264,7 +289,8 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
               postLanguages: Array.isArray(mylanguages) ? mylanguages: [],
               blog: Array.isArray(content) ? content: [],
               cont: Array.isArray(content) ? content.length: 0,
-              icon: Icon
+              icon: Icon,
+              tags: tags
             }),
           });
   
@@ -384,6 +410,45 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
                 rows={2}
               />
            </header>
+
+            <div className="w-full space-y-4 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                Project Tags
+              </label>
+           
+              {/* Input Section */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Add a tag (e.g. Next.js)"
+                  className="flex-1 px-4 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm transition-all"
+                />
+                <button
+                  onClick={addTag} 
+                  className="cursor-pointer p-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl hover:opacity-80 active:scale-95 transition-all"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+           
+              {/* Tags Display Area */}
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <span 
+                    key={tag}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-100 dark:border-blue-500/20"
+                  >
+                    {tag}
+                    <button onClick={() => removeTag(tag)} className="cursor-pointer hover:text-red-500 transition-colors">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
 
            {Icon && Icon.length !== 0 ? (
             <div className="relative w-full flex flex-col items-center justify-center p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">

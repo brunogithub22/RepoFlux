@@ -6,6 +6,7 @@ export const posts = pgTable('posts', {
   title: text('title'),
   type: text('type'),
   description: text('description'),
+  tags: jsonb('tags').$type<string[]>(),
   languages: jsonb('languages').$type<{id: string, language: string}[]>(),
   isPublished: boolean('published').default(false).notNull(),
   date: date('date'),

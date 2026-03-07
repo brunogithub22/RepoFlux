@@ -124,7 +124,8 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
             date: date, 
             languages: data.language,
             numContent: data.cont,
-            icon: data.icon 
+            icon: data.icon, 
+            tags: data.tags
         });
         if(!Array.isArray(data.content)){return {message: "not array"}}
        // Use for...of to ensure each block is saved before moving to the next
@@ -282,7 +283,10 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         id: postData.id,
         title: postData.title,
         published: postData.isPublished,
-        icon: postData.icon
+        icon: postData.icon,
+        description: postData.description,
+        tags: postData.tags,
+        type: postData.type
       };
     };
 
@@ -460,6 +464,7 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         published: postData.isPublished,
         languages: postData.languages,
         cont: postData.numContent,
+        tags: postData.tags
       };
     };
 
@@ -553,7 +558,6 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
        post.languages.some((language: LanguageType) => language.language === data.language)
     );
 
-
     return {message: !result};
     
   }
@@ -571,7 +575,10 @@ export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
         id: postData.id,
         title: postData.title,
         published: postData.isPublished,
-        icon: postData.icon
+        icon: postData.icon,
+        description: postData.description,
+        tags: postData.tags,
+        type: postData.type
       };
     };
 
@@ -749,6 +756,7 @@ export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
         published: postData.isPublished,
         languages: postData.languages,
         cont: postData.numContent,
+        tags: postData.tags
       };
     };
 
@@ -761,45 +769,7 @@ export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
     return result;
   },
 
-  removePost: async (data) =>{
-    
-    const remove = async (postData: any) => {
-        // We return the Promise.all so the parent can await it
-        return await Promise.all([
-            deleteRow(postImage, { postId: postData.id }),
-            deleteRow(link, { postId: postData.id, type: "list" }),
-            deleteRow(link, { postId: postData.id, type: "link" }),
-            deleteRow(postVideo, { postId: postData.id }),
-            deleteRow(textBlock, { postId: postData.id, type: "textBlock" }),
-            deleteRow(textBlock, { postId: postData.id, type: "textAreaBlock" }),
-            deleteRow(github, { postId: postData.id }),
-            deleteRow(code, { postId: postData.id }),
-            deleteRow(files,{ postId: postData.id }),
-            deleteRow(feedback,{ postId: postData.id}),
-            deleteRow(posts, { id: postData.id })
-        ]);
-    };
-
-    try {
-        const Data = await getItem(posts, { id: data.post.id });
-        
-        if (Data.length === 0) {
-            console.warn("No post found to delete.");
-            return { success: false, message: "Post not found" };
-        }
-
-        // FIX: Use Promise.all with map to wait for ALL deletions for ALL items
-        await Promise.all(Data.map((value) => remove(value)));
-
-        console.log("All deletions completed successfully!");
-        return { success: true };
-
-    } catch (error) {
-        console.error("Deletion failed:", error);
-        return { success: false, error: error };
-    }
-  },
-
+  
   getFeedbacks: async (data)=>{
     const result = await getItem(feedback,{postId: data.id});
     if(result.length > 0){
