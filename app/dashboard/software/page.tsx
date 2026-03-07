@@ -1,3 +1,5 @@
+"use client";
+
 import ProjectCard from "@/components/dashboard/Card"
 import { BasePost } from "@/components/intefaces";
 import { useEffect, useState } from "react";
@@ -21,15 +23,15 @@ export default function Software() {
         });
         const result = await response.json();
         if (response.ok) {
-          const posts = Array.isArray(result.result) ? result.result: [];
-          posts.map((post: BasePost)=>{
-            if(post.published && post.type === "software"){
-              setPost((prev)=>{
-                return[...prev,post];
-              });
-            }
-          })
-          console.log(result.result)
+          const allPosts = Array.isArray(result.result) ? result.result : [];
+
+           // ✅ 1. Filter the entire list at once
+          const filteredPosts = allPosts.filter((post: BasePost) => 
+            post.published && post.type === "Software"
+          );
+
+          // ✅ 2. Set the state ONCE with the new array (don't use ...prev)
+          setPost(filteredPosts);
 
         }
         setLoading(false);
@@ -62,6 +64,8 @@ export default function Software() {
               description={project.description}
               tags={project.tags}
               imageUrl={project.icon}
+              id = {project.id}
+              type= {project.type}
             />
           </div>
         ))}

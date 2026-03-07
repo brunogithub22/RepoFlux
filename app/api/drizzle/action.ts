@@ -778,4 +778,9 @@ export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
         return {data: [], message: false};
     }
   },
+
+  addFeedback: async (data)=>{
+    const result = await addRow(feedback,{id: crypto.randomUUID(), feedback: data.text, valutation: data.valutation, postId: data.postId});
+    return {message: result};
+  },
 };

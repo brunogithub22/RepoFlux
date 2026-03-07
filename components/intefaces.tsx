@@ -115,4 +115,6 @@ export interface ProjectCardProps {
   description: string;
   tags: string[];
   imageUrl?: string;
+  id: string;
+  type: string;
 }

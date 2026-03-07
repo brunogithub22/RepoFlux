@@ -23,6 +23,7 @@ export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab:
   }, []); 
 
   const getPost = async () =>{
+      setNumPublish(0);
       const actionName = "getPosts";
       try {
         const response = await fetch('/api/drizzle/helper/admin', {
