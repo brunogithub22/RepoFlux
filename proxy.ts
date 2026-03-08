@@ -27,6 +27,9 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  console.log('PROXY user:', user?.id ?? 'NULL');
+  console.log('PROXY admin env:', process.env.CMS_ADMIN_USER_ID ?? 'NOT SET');
+
   const admin = process.env.CMS_ADMIN_USER_ID!;
 
   if (request.nextUrl.pathname.startsWith("/admin")) {
