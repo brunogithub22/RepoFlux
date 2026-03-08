@@ -11,7 +11,7 @@ export default function Project() {
 
   useEffect(()=>{
     getPosts();
-  },[])
+  },[]) 
 
   const getPosts = async () =>{
     setPost([]);
