@@ -1,36 +1,43 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { createSupabaseServerClient } from "@/lib/superbase/server";
-/**
- * Next.js proxy (formerly middleware) entry point responsible for basic auth gating.
- *
- * Runtime assumptions due to conflicting docs (Next.js 16):
- * - Proxy runs in the Node.js runtime by default (not Edge)
- * - Node runtime grants access to the shared cookie store used by Supabase
- *
- * What happens per request:
- * - Instantiate the Supabase server client (shares cookies via `NextResponse`)
- * - Call `supabase.auth.getUser()` which refreshes tokens if necessary
- * - Redirect anonymous users away from `/protected` routes to `/login`
- *
- * Add extra path checks or redirects here when you need more complex routing rules.
- */
-export async function proxy(request: NextRequest) {
-  const response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-  const supabase = await createSupabaseServerClient();
-  const {data: { user }} = await supabase.auth.getUser();
-  console.log (user?.id);
 
-  const admin:string = process.env.CMS_ADMIN_USER_ID!
-  // Redirect non-authenticated users away from protected routes
+export async function proxy(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll(); // ✅ read from request directly
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options) // ✅ write to response
+          );
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const admin = process.env.CMS_ADMIN_USER_ID!;
+
   if (request.nextUrl.pathname.startsWith("/admin")) {
     if (!user || user.id !== admin) {
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
 
-  return response;
+  return supabaseResponse; // ✅ must return this, not a plain NextResponse.next()
 }
+
+export const config = {
+  matcher: ["/admin/:path*"],
+};
