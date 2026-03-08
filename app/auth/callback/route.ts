@@ -14,10 +14,13 @@ export async function GET(request: Request) {
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     
-    if (!error) {
-      // 2. Use the realOrigin instead of the local 'origin'
-      return NextResponse.redirect(`${realOrigin}/admin`);
+    // Add this 👇
+    if (error) {
+      console.error('Auth callback error:', error.message, error);
+      return NextResponse.redirect(`${origin}/?error=${error.message}`);
     }
+
+    return NextResponse.redirect(`${origin}/admin`);
   }
 
   return NextResponse.redirect(`${realOrigin}/`);
