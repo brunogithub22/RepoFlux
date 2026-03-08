@@ -1,10 +1,12 @@
-import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post,DriveFile, Feedback } from "@/components/intefaces";
+import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post,DriveFile, Feedback,ImageCapture } from "@/components/intefaces";
 import { Calendar,Globe,ChevronLeft,ChevronRight,ShoppingBag,
          Github,ExternalLink,Check,Copy,Code2,FileText,Download,ShieldXIcon,
-         CircleAlert,CheckCircle2
+         CircleAlert,CheckCircle2,X,Maximize2
         } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
 import { useCallback, useEffect, useState } from "react";
+
+
 
 export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNavigate?: (tab: string) => void;}){
 
@@ -19,6 +21,7 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
   const [valutation,setValutation] = useState<number | null>(null);
   const [state, setState] = useState<"idle" | "success" | "warning" | "error">("idle");
   const emojis = ['😞', '😐', '😊', '🔥'];
+  const [idImageSelect, setidImageSelect] = useState<ImageCapture | null>(null);
 
   const getPost = useCallback (async () => {
       const actionName = "getPost";
@@ -133,6 +136,8 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
       }
     }
 
+    const openImage = async (img: ImageCapture) => setidImageSelect(img);
+    const closeImage = async () => setidImageSelect(null);
 
     const getFeedback = async () =>{
       const actionName = "getFeedbacks";
@@ -253,21 +258,23 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                     : listImage[0].link.toString();
                   const currentIndex = listImage.findIndex(img => img.link === activeImage);
                   const currentCaption = listImage[currentIndex]?.text || "";
+                  const image: ImageCapture = {imgLink: activeImage,text: currentCaption}
+
                   return (
                     <div key={blockKey} className="relative max-w-4xl mx-auto rounded-2xl border border-zinc-800 bg-zinc-950 mb-3 mt-3">
                       {listImage.length > 1 && (
                         <>
-                          <div className="absolute inset-0 flex items-center justify-between p-4 z-20 pointer-events-none">
+                          <div className="absolute inset-0 flex items-center justify-between p-4 z-51 pointer-events-none">
                             <button 
                               onClick={() => prevImage(listImage.length)} 
-                              className="pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all active:scale-90"
+                              className="cursor-pointer pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all active:scale-90"
                             >
                               <ChevronLeft size={24} />
                             </button>
 
                             <button 
                               onClick={() => nextImage(listImage.length)} 
-                              className="pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all active:scale-90"
+                              className="cursor-pointer pointer-events-auto p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all active:scale-90"
                             >
                               <ChevronRight size={24} />
                             </button>
@@ -279,23 +286,62 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
                         </>
                       )}
 
-                      <div key={activeImage} className="relative flex flex-col items-center">
-                        <CldImage
-                          src={activeImage}
-                          alt="Gallery Image"
-                          width={800}
-                          height={600}
-                          crop="fit"
-                          className="w-full h-auto object-contain max-h-[70vh]"
-                          sizes="(max-width: 768px) 100vw, 800px"
-                        />
-    
-                        <div className="w-full p-4 bg-zinc-900/50 border-t border-zinc-800">
+                      {/* 1. Added 'group' here so group-hover works */}
+                      <div 
+                        key={activeImage} 
+                        onClick={() => openImage(image)} 
+                        className="group relative flex flex-col items-center cursor-pointer overflow-hidden rounded-xl w-150 h-125"
+                      >
+                        <div className="relative w-full aspect-4/3 overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+                          <CldImage
+                            src={activeImage}
+                            alt="Gallery Image"
+                            width={800} 
+                            height={600}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            priority
+                          />
+                        </div>
+
+                        {/* 2. The Overlay - Fixed Z-index and group-hover */} 
+                        <div className="absolute  inset-0 z-10 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                          <Maximize2 
+                            className="text-white opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300" 
+                            size={30} 
+                          /> 
+                        </div>
+
+                        <div className="w-full p-4 bg-zinc-900/50 border-t border-zinc-800 z-20">
                           <p className="text-sm text-zinc-400 text-center italic">
                             {currentCaption || "No description provided"}
-                          </p>
+                          </p> 
                         </div>
                       </div>
+
+                      {/* 2. THE MODAL (LIGHTBOX) */}
+                      {idImageSelect !== null && (
+                        <div className="fixed inset-0 z-52 flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-300">
+                          <button onClick={closeImage} className="cursor-pointer absolute top-6 right-6 text-white hover:text-gray-300 z-50">
+                            <X size={32} />
+                          </button>
+                              
+                          <div className="relative w-[90vw] h-[80vh] z-50">
+                            <CldImage
+                              src={idImageSelect.imgLink}
+                              alt={idImageSelect.imgLink}
+                              fill
+                              preserveTransformations // Keeps original aspect ratio
+                              className="object-contain"
+                            />
+                          </div>
+
+                          <div className="w-full p-4 bg-zinc-900/50 border-t border-zinc-800 z-20">
+                              <p className="text-sm text-zinc-400 text-center italic">
+                                {idImageSelect.text || "No description provided"}
+                              </p> 
+                            </div>
+                        </div>
+                      )}
                     </div>
                   );
 
@@ -679,6 +725,8 @@ export default function ViewPost({Post, onNavigate }: {Post?: BasePost, onNaviga
             </div>
           </div>
         )}
+
+        
       </div>
 
       

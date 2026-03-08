@@ -185,6 +185,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
     
               // Set other states using the fresh 'data' object
               setMyLanguages(data.languages || []);
+              setIcon(data.icon);
               setContent(data.content || []);
               setTags(data.tags || []);
               setCategory(data.type);
@@ -451,7 +452,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
             </div>
 
            {Icon && Icon.length !== 0 ? (
-            <div className="relative w-full flex flex-col items-center justify-center p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+            <div className="mt-3 mb-3 relative w-full flex flex-col items-center justify-center p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
 
               {/* Label - Centered above the image */}
               <div className="flex items-center gap-2 text-zinc-400 mb-4">
@@ -486,7 +487,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
               </div>
             </div>
           ) : (
-            <div onClick={()=>setShowIcon(true)} className="group cursor-pointer w-32 h-32 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 hover:text-blue-500 transition-all active:scale-95">
+            <div onClick={()=>setShowIcon(true)} className="mt-3 mb-3 group cursor-pointer w-32 h-32 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 hover:text-blue-500 transition-all active:scale-95">
               <Plus 
                 size={32}  
                 className="transition-transform group-hover:rotate-90 group-hover:scale-110" 
@@ -913,7 +914,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
                             height={400}
                             crop="fit"
                             className="object-cover h-auto w-auto "
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            sizes="(width: 768px) 100vw, (width: 1200px) 50vw, 25vw"
                           />
                         </div>
                         
@@ -923,9 +924,7 @@ export default function ModifyPost({Post, onNavigate }: {Post?: BasePost, onNavi
                         className="w-full bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
                         placeholder="Write a caption for this image..."
                         value={
-                          typeof (content[index].content as Gallery[])[selectedIdx] === 'object'  
-                            ? ((content[index].content as Gallery[])[selectedIdx]).text
-                            : ""
+                          ((content[index].content as Gallery[])[selectedIdx]).text || ""
                         }
                         rows={2}
                         onChange={(e) => {

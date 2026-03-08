@@ -835,7 +835,7 @@ export default function Post({ onNavigate }: NavigationProps) {
                             height={400}
                             crop="fit"
                             className="object-cover h-auto w-auto "
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            sizes="(width: 768px) 100vw, (width: 1200px) 50vw, 25vw"
                           />
                         </div>
                         
@@ -845,9 +845,7 @@ export default function Post({ onNavigate }: NavigationProps) {
                         className="w-full bg-zinc-900/50 p-3 rounded-lg outline-none text-zinc-300 leading-relaxed resize-none border border-zinc-700 focus:border-blue-500 transition-colors"
                         placeholder="Write a caption for this image..."
                         value={
-                          typeof (blocks[index].content as Gallery[])[selectedIdx] === 'object'  
-                            ? ((blocks[index].content as Gallery[])[selectedIdx]).text
-                            : ""
+                          ((blocks[index].content as Gallery[])[selectedIdx]).text || ""  
                         }
                         rows={2}
                         onChange={(e) => {

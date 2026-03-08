@@ -464,7 +464,8 @@ export const ActionAdmin: Record<string, (payload: any) => Promise<any>> = {
         published: postData.isPublished,
         languages: postData.languages,
         cont: postData.numContent,
-        tags: postData.tags
+        tags: postData.tags,
+        icon: postData.icon
       };
     };
 
@@ -756,7 +757,8 @@ export const ActionUser: Record<string, (payload: any) => Promise<any>> = {
         published: postData.isPublished,
         languages: postData.languages,
         cont: postData.numContent,
-        tags: postData.tags
+        tags: postData.tags,
+        icon: postData.icon
       };
     };
 

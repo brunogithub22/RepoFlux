@@ -35,12 +35,8 @@ export default function Overview({ onNavigate, onViewPost }: {onNavigate?: (tab:
         if (response.ok) {
           setPosts(result.result);
           const posts = Array.isArray(result.result) ? result.result: [];
-          posts.map((post: BasePost)=>{
-            console.log("Tag: ", post.tags)
-            if(post.published){
-              setNumPublish((prev)=>{return prev+1;})
-            }
-          })
+          const publishedCount = posts.filter((post: BasePost) => post.published).length;
+          setNumPublish(publishedCount);
           console.log(result.result)
           setResult(true);
         }

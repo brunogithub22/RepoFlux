@@ -82,6 +82,7 @@ export interface post{
   content: Block[];
   cont: number;
   tags: string[];
+  icon: string;
 }
 
 export interface BasePost{
@@ -117,4 +118,9 @@ export interface ProjectCardProps {
   imageUrl?: string;
   id: string;
   type: string;
+}
+
+export interface ImageCapture{
+  imgLink: string;
+  text: string;
 }
