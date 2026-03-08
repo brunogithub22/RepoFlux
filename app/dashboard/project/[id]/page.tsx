@@ -14,7 +14,7 @@ type ProjectPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default async function ViewPost({ params }: ProjectPageProps){
+export default function ViewPost({ params }: ProjectPageProps){
 
   const id = use(params);
   const [post,setPost] = useState<post>();
