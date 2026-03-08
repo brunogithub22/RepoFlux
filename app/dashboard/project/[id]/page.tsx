@@ -1,3 +1,6 @@
+"use client";
+
+import { use } from "react";
 import { LanguageType, BasePost,Block, Gallery,Item, GitHubInfo, CodeInfo,post,DriveFile, Feedback,ImageCapture } from "@/components/intefaces";
 import { Calendar,Globe,ChevronLeft,ChevronRight,ShoppingBag,
          Github,ExternalLink,Check,Copy,Code2,FileText,Download,ShieldXIcon,
@@ -13,6 +16,7 @@ type ProjectPageProps = {
 
 export default async function ViewPost({ params }: ProjectPageProps){
 
+  const id = use(params);
   const [post,setPost] = useState<post>();
   const [lang,setLang] = useState<LanguageType[]>([]);
   const [content,setContent] = useState<Block[]>([]);
@@ -176,7 +180,7 @@ export default async function ViewPost({ params }: ProjectPageProps){
       }
     }
 
-    if (!(await params).id) return <div>No post selected. Please go back to Overview.</div>;
+    if (!id) return <div>No post selected. Please go back to Overview.</div>;
 
     if (isLoading) {
       return (
